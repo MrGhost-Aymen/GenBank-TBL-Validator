@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GenBank TBL Validator</title>
+<title>GenBank TBL Validator v2.5</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
@@ -45,7 +45,7 @@
     z-index: 0;
   }
 
-  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+  .wrapper { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; padding: 0 24px 80px; }
 
   header {
     padding: 36px 0 28px;
@@ -190,14 +190,6 @@
   .stat-info .stat-value { color: var(--info); }
   .stat-feat .stat-value { color: var(--accent2); }
 
-  .section-title {
-    font-size: .72rem; font-weight: 700; letter-spacing: .12em;
-    text-transform: uppercase; color: var(--muted);
-    margin: 28px 0 12px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
   .issue {
     background: var(--panel);
     border: 1px solid var(--border);
@@ -231,8 +223,7 @@
 
   .feature-info {
     margin-top: 6px; font-family: var(--mono); font-size: .72rem;
-    color: var(--muted);
-    background: var(--surface);
+    color: var(--muted); background: var(--surface);
     padding: 6px 10px; border-radius: 6px;
     border: 1px solid var(--border);
   }
@@ -277,7 +268,7 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .tabs { display: flex; gap: 2px; margin: 24px 0 0; }
+  .tabs { display: flex; gap: 2px; margin: 24px 0 0; flex-wrap: wrap; }
   .tab {
     padding: 9px 20px; border-radius: 8px 8px 0 0;
     font-size: .82rem; font-weight: 600;
@@ -287,6 +278,7 @@
   }
   .tab:hover { color: var(--text); }
   .tab.active { background: var(--panel); color: var(--text); border-color: var(--border); }
+  .tab.disabled { opacity: .4; cursor: not-allowed; }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
   .tab-panel {
@@ -376,6 +368,338 @@
     font-weight: 700;
   }
 
+  .score-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .score-header {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .score-gauge-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+  }
+  .score-gauge-wrap svg {
+    transform: rotate(-90deg);
+    transform-origin: 80px 80px;
+  }
+  .score-gauge-bg {
+    fill: none;
+    stroke: var(--border2);
+    stroke-width: 8;
+  }
+  .score-gauge-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s ease-out;
+  }
+  .score-gauge-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .score-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    line-height: 1;
+  }
+  .score-label {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .score-desc {
+    font-size: .85rem;
+    line-height: 1.5;
+  }
+  .score-band-ready { color: var(--info); }
+  .score-band-minor { color: var(--warn); }
+  .score-band-review { color: #ff6348; }
+  .score-band-revision { color: var(--crit); }
+
+  .score-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .score-card-name {
+    font-size: .75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .score-card-points {
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .score-card-bar {
+    height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .score-card-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease-out;
+  }
+  .score-card-note {
+    font-size: .68rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .score-deductions {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: .75rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    line-height: 1.8;
+  }
+
+  .ref-info-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: .8rem;
+    font-family: var(--mono);
+  }
+  .ref-summary-strip {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .ref-summary-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .ref-summary-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    font-family: var(--mono);
+  }
+  .ref-summary-label {
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .comp-table-wrap {
+    overflow-x: auto;
+    margin-top: 8px;
+  }
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .75rem;
+    font-family: var(--mono);
+  }
+  .comp-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .comp-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .comp-table tr:hover td { background: rgba(255,255,255,.02); }
+  .comp-table tr.expandable { cursor: pointer; }
+  .comp-expanded-row { display: none; }
+  .comp-expanded-row.open { display: table-row; }
+  .comp-expanded-row td {
+    background: var(--surface);
+    padding: 12px 16px;
+    font-size: .7rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .comp-status-ok { color: var(--info); }
+  .comp-status-warn { color: var(--warn); }
+  .comp-status-crit { color: var(--crit); }
+  .comp-status-missing { color: var(--muted); }
+  .comp-status-extra { color: var(--accent2); }
+  .comp-cell-ok { background: rgba(46,213,115,.06); }
+  .comp-cell-warn { background: rgba(255,165,2,.06); }
+  .comp-cell-crit { background: rgba(255,71,87,.06); }
+  .comp-cell-missing { background: rgba(128,128,128,.04); }
+  .comp-arrow { color: var(--muted); margin: 0 4px; }
+
+  .info-banner {
+    background: rgba(0,153,255,.1);
+    border: 1px solid rgba(0,153,255,.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    font-size: .8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag-ts {
+    background: rgba(0,153,255,.12);
+    color: #5eb8ff;
+    border: 1px solid rgba(0,153,255,.3);
+    font-size: .6rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+
+  .autofix-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all .3s;
+  }
+  .autofix-card.applied {
+    border-color: var(--info);
+    background: rgba(46,213,115,.05);
+  }
+  .autofix-card.dismissed { opacity: .4; }
+  .autofix-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .autofix-title { font-weight: 600; font-size: .85rem; }
+  .autofix-badge {
+    font-size: .65rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--mono);
+  }
+  .autofix-badge.auto { background: rgba(0,212,170,.15); color: var(--accent); }
+  .autofix-badge.manual { background: rgba(255,165,2,.15); color: var(--warn); }
+  .autofix-diff {
+    background: #0a0c0f;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    font-family: var(--mono);
+    font-size: .7rem;
+    margin: 8px 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .diff-add { color: var(--info); }
+  .diff-rem { color: var(--crit); }
+  .autofix-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-sm {
+    padding: 5px 12px;
+    font-size: .72rem;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--panel);
+    color: var(--text);
+    transition: all .15s;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.btn-apply { background: var(--info); color: #000; border-color: var(--info); }
+  .btn-sm.btn-apply:hover { background: #3df580; }
+  .btn-sm.btn-dismiss { background: transparent; }
+  .btn-sm:disabled { opacity: .4; cursor: not-allowed; }
+
+  .codon-intel-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-top: 4px;
+    padding: 8px 12px;
+    display: none;
+    font-size: .72rem;
+  }
+  .codon-intel-row.open { display: block; }
+  .codon-intel-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.03);
+  }
+  .codon-intel-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-green  { background: var(--info); }
+  .dot-yellow { background: var(--warn); }
+  .dot-red    { background: var(--crit); }
+
+  .stats-section-title {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stats-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -387,6 +711,10 @@
     .stat { flex-direction: row; justify-content: space-between; min-width: 0; }
     .stat-value { font-size: 1.4rem; }
     .codon-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    .score-header { flex-direction: column; align-items: center; text-align: center; }
+    .score-breakdown { grid-template-columns: 1fr; }
+    .ref-summary-strip { flex-direction: column; }
+    .stats-grid-2 { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -394,76 +722,72 @@
 <div class="wrapper">
 
   <header>
-    <div class="logo">🧬</div>
+    <div class="logo">ðŸ§¬</div>
     <div>
       <h1>GenBank TBL Validator</h1>
-      <p>organelle feature table · 5-column format · submission-ready checks</p>
+      <p>organelle feature table Â· 5-column format Â· submission-ready checks</p>
     </div>
-    <div class="badge">v1.2.0</div>
+    <div class="badge">v2.5.0</div>
   </header>
 
-  <!-- Input controls -->
   <div style="margin-top:28px">
     <div class="dropzone" id="dropzone">
-      <input type="file" id="fileInput" accept=".tbl,.txt,.feat,.fasta,.fa,.fna" multiple>
-      <div class="dropzone-icon">📂</div>
-      <div class="dropzone-text">Drop your <b>.tbl</b> and <b>.fasta</b> files here, or click to browse</div>
-      <div class="dropzone-sub">Feature table (.tbl) + optional sequence file (.fasta)</div>
+      <input type="file" id="fileInput" accept=".tbl,.txt,.feat,.fasta,.fa,.fna,.gb,.gbk,.genbank" multiple>
+      <div class="dropzone-icon">ðŸ“‚</div>
+      <div class="dropzone-text">Drop your <b>.tbl</b>, <b>.fasta</b>, and <b>.gb</b> files here, or click to browse</div>
+      <div class="dropzone-sub">Feature table (.tbl) + sequence (.fasta) + optional reference (.gb)</div>
       <div class="file-loaded" id="fileLoaded" style="display:none"></div>
     </div>
 
-    <div style="margin-bottom:8px; font-size:.75rem; color:var(--muted); text-align:center;">— or paste directly —</div>
+    <div style="margin-bottom:8px; font-size:.75rem; color:var(--muted); text-align:center;">â€” or paste directly â€”</div>
     <textarea class="paste-area" id="pasteArea" placeholder=">Feature sequence_id&#10;372	299	tRNA&#10;		gene	trnD-GUC&#10;		product	tRNA-Asp&#10;&#10;3398	10908	gene&#10;		gene	nad4&#10;3398	3849	CDS&#10;5229	5743&#10;		gene	nad4&#10;		product	NADH dehydrogenase subunit 4&#10;		transl_table	2"></textarea>
 
     <div class="controls" style="margin-top:12px">
       <div class="field-group">
         <label>Organism / Genetic Code</label>
         <select id="organism" class="org-select">
-          <optgroup label="🦋 Animal Mitochondrial">
-            <option value="invertebrate_mito" data-code="5">🦋 Invertebrate (code 5)</option>
-            <option value="vertebrate_mito" data-code="2">🐟 Vertebrate (code 2)</option>
-            <option value="echinoderm_mito" data-code="9">⭐ Echinoderm/Flatworm (code 9)</option>
-            <option value="ascidian_mito" data-code="13">🦑 Ascidian (code 13)</option>
-            <option value="trematode_mito" data-code="21">🪱 Trematode (code 21)</option>
-            <option value="pterobranchia_mito" data-code="24">🪸 Pterobranchia (code 24)</option>
+          <optgroup label="ðŸ¦‹ Animal Mitochondrial">
+            <option value="invertebrate_mito" data-code="5">ðŸ¦‹ Invertebrate (code 5)</option>
+            <option value="vertebrate_mito" data-code="2">ðŸŸ Vertebrate (code 2)</option>
+            <option value="echinoderm_mito" data-code="9">â­ Echinoderm/Flatworm (code 9)</option>
+            <option value="ascidian_mito" data-code="13">ðŸ¦‘ Ascidian (code 13)</option>
+            <option value="trematode_mito" data-code="21">ðŸª± Trematode (code 21)</option>
+            <option value="pterobranchia_mito" data-code="24">ðŸª¸ Pterobranchia (code 24)</option>
           </optgroup>
-          <optgroup label="🌿 Plant Mitochondrial">
-            <option value="standard" data-code="1">🌿 Standard genetic code (code 1)</option>
+          <optgroup label="ðŸŒ¿ Plant Mitochondrial">
+            <option value="standard" data-code="1">ðŸŒ¿ Standard genetic code (code 1)</option>
           </optgroup>
-          <optgroup label="🍃 Plastid / Chloroplast">
-            <option value="bacterial_plant_plastid" data-code="11">🍃 Bacterial/Plant Plastid (code 11)</option>
-            <option value="chlorophycean_mito" data-code="16">🟢 Chlorophycean mito (code 16)</option>
+          <optgroup label="ðŸƒ Plastid / Chloroplast">
+            <option value="bacterial_plant_plastid" data-code="11">ðŸƒ Bacterial/Plant Plastid (code 11)</option>
+            <option value="chlorophycean_mito" data-code="16">ðŸŸ¢ Chlorophycean mito (code 16)</option>
           </optgroup>
-          <optgroup label="🍄 Fungal / Other">
-            <option value="yeast_mito" data-code="3">🍄 Yeast mitochondrial (code 3)</option>
-            <option value="mold_protozoan_mito" data-code="4">🦠 Mold/Protozoan mito (code 4)</option>
-            <option value="alternative_yeast" data-code="12">🍄 Alt. Yeast Nuclear (code 12)</option>
+          <optgroup label="ðŸ„ Fungal / Other">
+            <option value="yeast_mito" data-code="3">ðŸ„ Yeast mitochondrial (code 3)</option>
+            <option value="mold_protozoan_mito" data-code="4">ðŸ¦  Mold/Protozoan mito (code 4)</option>
+            <option value="alternative_yeast" data-code="12">ðŸ„ Alt. Yeast Nuclear (code 12)</option>
           </optgroup>
         </select>
       </div>
       <button class="btn btn-secondary" onclick="loadExample()">Load example</button>
-      <button class="btn btn-primary" id="validateBtn" onclick="runValidation()">▶ Validate</button>
+      <button class="btn btn-primary" id="validateBtn" onclick="runValidation()">â–¶ Validate</button>
     </div>
   </div>
 
-  <!-- Results area -->
   <div id="results"></div>
 
 </div>
 
-<!-- Codon Visualization Modal -->
 <div id="codonModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(4px); z-index:50; overflow-y:auto;">
   <div style="max-width:1100px; margin:5vh auto; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; max-height:90vh; overflow:auto;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-      <h2 style="font-size:1.1rem;">🧬 CDS Codon Visualization</h2>
-      <button class="btn btn-secondary" onclick="closeCodonModal()" style="padding:6px 14px; font-size:.8rem;">✕ Close</button>
+      <h2 style="font-size:1.1rem;">ðŸ§¬ CDS Codon Visualization</h2>
+      <button class="btn btn-secondary" onclick="closeCodonModal()" style="padding:6px 14px; font-size:.8rem;">âœ• Close</button>
     </div>
     <div id="codonContent"></div>
   </div>
 </div>
 
 <script>
-// ── example data ──────────────────────────────────────────────────────────────
 const EXAMPLE = `>Feature pyrgus_ruralis
 3952\t5490\tgene
 \t\t\tgene\tcox1
@@ -514,8 +838,6 @@ function loadExample() {
   document.getElementById('pasteArea').value = EXAMPLE;
   document.getElementById('fileLoaded').style.display = 'none';
 }
-
-// ── file drag ─────────────────────────────────────────────────────────────────
 const dz = document.getElementById('dropzone');
 const fi = document.getElementById('fileInput');
 
@@ -529,98 +851,91 @@ dz.addEventListener('drop', e => {
 fi.addEventListener('change', () => { if (fi.files.length) loadFiles(Array.from(fi.files)); });
 
 function loadFiles(files) {
-  let tblFile = null, fastaFile = null;
-  
+  let tblFile = null, fastaFile = null, gbFile = null;
   for (const f of files) {
     const name = f.name.toLowerCase();
-    if (name.endsWith('.tbl') || name.endsWith('.txt') || name.endsWith('.feat')) {
-      tblFile = f;
-    } else if (name.endsWith('.fasta') || name.endsWith('.fa') || name.endsWith('.fna')) {
-      fastaFile = f;
-    }
+    if (name.endsWith('.tbl') || name.endsWith('.txt') || name.endsWith('.feat')) tblFile = f;
+    else if (name.endsWith('.fasta') || name.endsWith('.fa') || name.endsWith('.fna')) fastaFile = f;
+    else if (name.endsWith('.gb') || name.endsWith('.gbk') || name.endsWith('.genbank')) gbFile = f;
   }
-  
   const promises = [];
-  
   if (tblFile) {
-    const p = new Promise(res => {
+    promises.push(new Promise(res => {
       const r = new FileReader();
-      r.onload = ev => {
-        document.getElementById('pasteArea').value = ev.target.result;
-        res();
-      };
+      r.onload = ev => { document.getElementById('pasteArea').value = ev.target.result; res(); };
       r.readAsText(tblFile);
-    });
-    promises.push(p);
+    }));
   }
-  
   if (fastaFile) {
-    const p = new Promise(res => {
+    promises.push(new Promise(res => {
+      const r = new FileReader();
+      r.onload = ev => { parseFasta(ev.target.result); res(); };
+      r.readAsText(fastaFile);
+    }));
+  }
+  if (gbFile) {
+    promises.push(new Promise(res => {
       const r = new FileReader();
       r.onload = ev => {
-        parseFasta(ev.target.result);
+        try {
+          _refData = parseGenBankFile(ev.target.result);
+          _refFeatures = _refData.features;
+          _refSeqId = _refData.seqId;
+          _refLoaded = true;
+          if (document.getElementById('results').innerHTML) {
+            const results = document.getElementById('results');
+            results.insertAdjacentHTML('afterbegin', `<div class="info-banner" id="refBanner">Reference loaded: ${_refData.seqId} â€” <a href="javascript:void(0)" onclick="runValidation();document.getElementById('refBanner')?.remove()" style="color:var(--accent);text-decoration:underline;cursor:pointer">Re-validate to include reference comparison</a></div>`);
+          }
+        } catch(e) {
+          console.error('GenBank parse error:', e);
+          alert('Failed to parse GenBank file: ' + e.message);
+        }
         res();
       };
-      r.readAsText(fastaFile);
-    });
-    promises.push(p);
+      r.readAsText(gbFile);
+    }));
   }
-  
   Promise.all(promises).then(() => {
     const el = document.getElementById('fileLoaded');
     const parts = [];
     if (tblFile) parts.push(`${tblFile.name} (${(tblFile.size/1024).toFixed(1)} KB)`);
     if (fastaFile) parts.push(`${fastaFile.name} (${(fastaFile.size/1024).toFixed(1)} KB)`);
-    el.textContent = `✓ ${parts.join(' + ')}`;
+    if (gbFile) parts.push(`${gbFile.name} (reference)`);
+    el.textContent = `âœ“ ${parts.join(' + ')}`;
     el.style.display = 'block';
   });
 }
+let _fastaSequences = {};
+let _fastaLoaded = false;
 
-// ── FASTA parsing ─────────────────────────────────────────────────────────────
 function parseFasta(text) {
   _fastaSequences = {};
   const lines = text.split(/\r?\n/);
-  let currentId = null;
-  let currentSeq = [];
-  
+  let currentId = null, currentSeq = [];
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-    
     if (trimmed.startsWith('>')) {
-      if (currentId && currentSeq.length) {
-        _fastaSequences[currentId] = currentSeq.join('').toUpperCase();
-      }
+      if (currentId && currentSeq.length) _fastaSequences[currentId] = currentSeq.join('').toUpperCase();
       currentId = trimmed.substring(1).split(/\s+/)[0];
       currentSeq = [];
-    } else if (currentId) {
-      currentSeq.push(trimmed);
-    }
+    } else if (currentId) currentSeq.push(trimmed);
   }
-  
-  if (currentId && currentSeq.length) {
-    _fastaSequences[currentId] = currentSeq.join('').toUpperCase();
-  }
-  
+  if (currentId && currentSeq.length) _fastaSequences[currentId] = currentSeq.join('').toUpperCase();
   _fastaLoaded = Object.keys(_fastaSequences).length > 0;
-  console.log(`FASTA loaded: ${Object.keys(_fastaSequences).length} sequence(s)`);
 }
 
 function extractCDSSequence(feature, seqId) {
   const fullSeq = _fastaSequences[seqId];
   if (!fullSeq) return null;
-  
   let cdsSeq = '';
   for (const span of feature.spans) {
     const start = Math.min(span.start, span.end) - 1;
     const end = Math.max(span.start, span.end);
     let segment = fullSeq.substring(start, end);
-    if (span.strand === '-') {
-      segment = reverseComplement(segment);
-    }
+    if (span.strand === '-') segment = reverseComplement(segment);
     cdsSeq += segment;
   }
-  
   return cdsSeq;
 }
 
@@ -628,59 +943,186 @@ function reverseComplement(seq) {
   const comp = {'A':'T','T':'A','G':'C','C':'G','N':'N'};
   return seq.split('').reverse().map(b => comp[b] || b).join('');
 }
+function parseGenBankFile(text) {
+  const lines = text.split(/\r?\n/);
+  let seqId = '', organism = '', length = 0;
+  let inFeatures = false, inOrigin = false;
+  let currentFeature = null;
+  const features = [];
+  let featureLines = [];
+  let locusLine = '';
 
-// ── parser ────────────────────────────────────────────────────────────────────
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.replace(/\r$/, '');
+    if (line.match(/^LOCUS\s+/)) {
+      locusLine = line;
+      const parts = line.split(/\s+/);
+      if (parts.length >= 3) { seqId = parts[1] || ''; length = parseInt(parts[2]) || 0; }
+      continue;
+    }
+    if (line.match(/^ACCESSION\s+/)) { seqId = line.replace(/^ACCESSION\s+/, '').trim(); continue; }
+    if (line.match(/^\s+ORGANISM\s+/)) { organism = line.replace(/^\s+ORGANISM\s+/, '').trim(); continue; }
+    if (!organism && line.match(/^SOURCE\s+/)) {
+      organism = line.replace(/^SOURCE\s+/, '').trim();
+      for (let j = i+1; j < lines.length && lines[j].match(/^\s{12}\S/); j++) organism += ' ' + lines[j].trim();
+      continue;
+    }
+    if (line.match(/^FEATURES\s+Location\/Qualifiers/)) {
+      inFeatures = true;
+      if (currentFeature && featureLines.length) { finalizeGenBankFeature(featureLines, features); currentFeature = null; featureLines = []; }
+      continue;
+    }
+    if (line.match(/^ORIGIN/)) {
+      inFeatures = false; inOrigin = true;
+      if (currentFeature && featureLines.length) finalizeGenBankFeature(featureLines, features);
+      break;
+    }
+    if (inFeatures && !inOrigin) {
+      if (line.match(/^\s{5}[A-Za-z]/) && !line.match(/^\s{21}\//)) {
+        if (currentFeature && featureLines.length) finalizeGenBankFeature(featureLines, features);
+        featureLines = [line]; currentFeature = true; continue;
+      }
+      if (currentFeature && line.match(/^\s{21}/)) { featureLines.push(line); continue; }
+      if (currentFeature && line.length > 0 && line[0] !== ' ') { featureLines.push(line); continue; }
+    }
+  }
+  if (!seqId && locusLine) { const parts = locusLine.split(/\s+/); seqId = parts[1] || 'unknown'; }
+  return { seqId, organism, length, features };
+}
+
+function finalizeGenBankFeature(featureLines, features) {
+  if (!featureLines.length) return;
+  const firstLine = featureLines[0];
+  const typeMatch = firstLine.match(/^\s{5}(\S+)\s+(.+)/);
+  if (!typeMatch) return;
+  const ftype = typeMatch[1];
+  let rawLocation = typeMatch[2].trim();
+  for (let i = 1; i < featureLines.length; i++) {
+    const line = featureLines[i];
+    if (line.match(/^\s{21}\//)) break;
+    rawLocation += line.trim();
+  }
+  const spans = parseGenBankLocation(rawLocation);
+  if (!spans.length) return;
+  const qualifierPairs = [];
+  let currentQualifier = null, currentValue = '';
+  for (const line of featureLines) {
+    const qMatch = line.match(/^\s{21}\/([a-z_]+)=/);
+    if (qMatch) {
+      if (currentQualifier !== null) qualifierPairs.push({ key: currentQualifier, value: currentValue });
+      currentQualifier = qMatch[1];
+      currentValue = line.substring(qMatch.index + qMatch[0].length).trim();
+      if (currentValue.startsWith('"')) currentValue = currentValue.substring(1);
+      if (currentValue.endsWith('"')) currentValue = currentValue.slice(0, -1);
+    } else if (line.match(/^\s{21}\/[a-z_]+$/)) {
+      if (currentQualifier !== null) qualifierPairs.push({ key: currentQualifier, value: currentValue });
+      currentQualifier = line.trim().substring(1); currentValue = '';
+    } else if (currentQualifier !== null) {
+      let cont = line.trim();
+      if (cont.endsWith('"')) cont = cont.slice(0, -1);
+      if (cont.startsWith('"')) cont = cont.substring(1);
+      currentValue += cont;
+    }
+  }
+  if (currentQualifier !== null) qualifierPairs.push({ key: currentQualifier, value: currentValue });
+  const qualifiers = {};
+  let geneName = null, productName = null, translTable = null, translation = null, note = null, locusTag = null, transSplicing = false;
+  for (const {key, value} of qualifierPairs) {
+    qualifiers[key] = [value];
+    switch (key) {
+      case 'gene': geneName = value.replace(/"/g, ''); break;
+      case 'product': productName = value.replace(/"/g, ''); break;
+      case 'transl_table': translTable = parseInt(value) || null; break;
+      case 'translation': translation = value.replace(/\s/g, ''); break;
+      case 'note': note = value.replace(/"/g, ''); break;
+      case 'locus_tag': locusTag = value.replace(/"/g, ''); break;
+      case 'trans_splicing': transSplicing = true; break;
+    }
+  }
+  if (!geneName) geneName = locusTag || (productName ? productName.split(' ')[0] : null);
+  const partial5 = rawLocation.includes('<') || (spans.length > 0 && spans[0].partial5);
+  const partial3 = rawLocation.includes('>') || (spans.length > 0 && spans[spans.length-1].partial3);
+  const proteinLength = translation ? translation.length : null;
+  const low = Math.min(...spans.map(s => s.low));
+  const high = Math.max(...spans.map(s => s.high));
+  const hasMixedStrands = spans.length > 1 && new Set(spans.map(s => s.strand)).size > 1;
+  features.push({ type: ftype, geneName, productName, spans, qualifiers, partial5, partial3, proteinLength, translTable, note, low, high, transSplicing: transSplicing || hasMixedStrands });
+}
+
+function parseGenBankLocation(locStr) {
+  const spans = [];
+  let strand = '+';
+  let working = locStr.trim();
+  const isComplement = /^complement\s*\(/.test(working);
+  if (isComplement) { strand = '-'; working = working.replace(/^complement\s*\(\s*/, '').replace(/\s*\)$/, ''); }
+  const isJoin = /^(join|order)\s*\(/.test(working);
+  if (isJoin) working = working.replace(/^(join|order)\s*\(\s*/, '').replace(/\s*\)$/, '');
+  const parts = splitLocationParts(working);
+  for (let part of parts) {
+    part = part.trim();
+    if (!part) continue;
+    let localStrand = strand, localPart = part;
+    if (/^complement\s*\(/.test(localPart)) {
+      localStrand = localStrand === '+' ? '-' : '+';
+      localPart = localPart.replace(/^complement\s*\(\s*/, '').replace(/\s*\)\s*$/, '');
+    }
+    const rangeMatch = localPart.match(/([<>]?)(\d+)\s*\.\.\s*([<>]?)(\d+)/);
+    if (rangeMatch) {
+      const start = parseInt(rangeMatch[2]), end = parseInt(rangeMatch[4]);
+      spans.push({ start, end, strand: localStrand, low: Math.min(start,end), high: Math.max(start,end), partial5: rangeMatch[1]==='<', partial3: rangeMatch[3]==='>' });
+    }
+  }
+  return spans;
+}
+
+function splitLocationParts(str) {
+  const parts = [];
+  let depth = 0, current = '';
+  for (const ch of str) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) { parts.push(current.trim()); current = ''; }
+    else current += ch;
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
 function parseFeatureTable(text) {
   const tables = [];
-  let currentTable = null;
-  let currentFeature = null;
-
+  let currentTable = null, currentFeature = null;
   const COORD_RE = /^([<>]?)(\d+)\s+([<>]?)(\d+)(?:\s+(\S+))?\s*$/;
 
   function flushFeature() {
     if (currentFeature && currentTable) {
-      currentFeature.geneName    = getQ(currentFeature, 'gene');
-      currentFeature.productName = getQ(currentFeature, 'product');
+      currentFeature.geneName      = getQ(currentFeature, 'gene');
+      currentFeature.productName   = getQ(currentFeature, 'product');
+      const hasMixedStrands = currentFeature.spans.length > 1 &&
+        new Set(currentFeature.spans.map(s => s.strand)).size > 1;
+      currentFeature.transSplicing = hasMixedStrands ||
+        ('trans_splicing' in currentFeature.qualifiers);
       currentTable.features.push(currentFeature);
     }
     currentFeature = null;
   }
-
-  function getQ(feat, key) {
-    return feat.qualifiers[key]?.[0] || null;
-  }
+  function getQ(feat, key) { return feat.qualifiers[key]?.[0] || null; }
 
   const lines = text.split(/\r?\n/);
-  for (let lineno = 0; lineno < lines.length; lineno++) {
-    const raw = lines[lineno];
+  for (const raw of lines) {
     const stripped = raw.trim();
     if (!stripped || stripped.startsWith('#')) continue;
-
     const hm = stripped.match(/^>(?:Feature\s+)?(\S+)/);
-    if (hm) {
-      flushFeature();
-      currentTable = { seqId: hm[1], features: [] };
-      tables.push(currentTable);
-      continue;
-    }
-
-    if (!currentTable) {
-      currentTable = { seqId: '<unnamed>', features: [] };
-      tables.push(currentTable);
-    }
-
+    if (hm) { flushFeature(); currentTable = { seqId: hm[1], features: [], rawText: '' }; tables.push(currentTable); continue; }
+    if (!currentTable) { currentTable = { seqId: '<unnamed>', features: [], rawText: '' }; tables.push(currentTable); }
+    if (currentTable.rawText !== undefined) currentTable.rawText += raw + '\n';
     const cm = stripped.match(COORD_RE);
     if (cm) {
       const start = parseInt(cm[2]), end = parseInt(cm[4]), ftype = cm[5] || null;
-      const span = { start, end, strand: start > end ? '-' : '+',
-                     low: Math.min(start,end), high: Math.max(start,end) };
+      const span = { start, end, strand: start > end ? '-' : '+', low: Math.min(start,end), high: Math.max(start,end) };
       if (ftype) {
         flushFeature();
-        currentFeature = {
-          type: ftype, spans: [span], qualifiers: {},
-          geneName: null, productName: null,
-          partial5: cm[1]==='<', partial3: cm[3]==='>'
-        };
+        currentFeature = { type: ftype, spans: [span], qualifiers: {}, geneName: null, productName: null, partial5: cm[1]==='<', partial3: cm[3]==='>' };
       } else if (currentFeature) {
         currentFeature.spans.push(span);
         if (cm[1]==='<') currentFeature.partial5 = true;
@@ -688,7 +1130,6 @@ function parseFeatureTable(text) {
       }
       continue;
     }
-
     let key = null, value = null;
     if (stripped.includes('\t')) {
       const parts = stripped.split('\t');
@@ -705,333 +1146,79 @@ function parseFeatureTable(text) {
     }
   }
   flushFeature();
-  if (!tables.length) tables.push({ seqId: '<unnamed>', features: [] });
+  if (!tables.length) tables.push({ seqId: '<unnamed>', features: [], rawText: '' });
   return tables;
 }
 
-// ── validator ──────────────────────────────────────────────────────────────────
-const TRANS_SPLICED = new Set(['nad1','nad2','nad5','rps12','nad7','nad4','cox2']);
-const FORBIDDEN_Q   = new Set(['protein_id','transcript_id']);
-const INVALID_Q     = new Set(['label','standard_name','blast_score','e_value','percent_identity']);
-const MAX_OVERLAP   = 3;
-
-// ── Expected genes by organism type ──────────────────────────────────────────
-const EXPECTED_GENES = {
-  invertebrate_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','cob']),
-  vertebrate_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','cob']),
-  echinoderm_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','cob']),
-  ascidian_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','cob']),
-  trematode_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','cob']),
-  pterobranchia_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','cob']),
-  standard: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','nad7','nad9',
-    'cox1','cox2','cox3','atp1','atp4','atp6','atp8','atp9','cob','matR','mttB']),
-  bacterial_plant_plastid: new Set(['rbcL','psbA','psbB','psbC','psbD','atpA','atpB','atpE','atpF',
-    'rpoA','rpoB','rpoC1','rpoC2','ndhA','ndhB','ndhC','ndhD','ndhE','ndhF','ndhG','ndhH','ndhI','ndhJ','ndhK',
-    'petA','petB','petD','petG','petL','petN','psaA','psaB','psaC','psaI','psaJ',
-    'ycf1','ycf2','ycf3','ycf4','matK','clpP','accD','ccsA','cemA','infA']),
-  chlorophycean_mito: new Set(['rbcL','psbA','psbB','atpA','atpB','rpoA','rpoB',
-    'ndhA','ndhB','ndhF','ycf1','ycf2','matK','clpP']),
-  yeast_mito: new Set(['cox1','cox2','cox3','atp6','atp8','atp9','cob','var1']),
-  mold_protozoan_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-    'cox1','cox2','cox3','atp6','atp8','atp9','cob']),
-  alternative_yeast: new Set(['cox1','cox2','cox3','atp6','atp8','atp9','cob','var1']),
-};
-
-const DEFAULT_EXPECTED = new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6',
-  'cox1','cox2','cox3','atp6','atp8','cob']);
-
-const EXPECTED_TRANSL_TABLE = {
-  invertebrate_mito: 5,
-  vertebrate_mito: 2,
-  echinoderm_mito: 9,
-  ascidian_mito: 13,
-  trematode_mito: 21,
-  pterobranchia_mito: 24,
-  standard: 1,
-  bacterial_plant_plastid: 11,
-  chlorophycean_mito: 16,
-  yeast_mito: 3,
-  mold_protozoan_mito: 4,
-  alternative_yeast: 12,
-};
-
-function norm(s) { return s ? s.trim().toLowerCase() : null; }
-function flen(f) { return f.spans.reduce((a,s)=>a+s.high-s.low+1, 0); }
-
-function spansOverlap(a, b) {
-  let total = 0;
-  for (const sa of a.spans)
-    for (const sb of b.spans)
-      total += Math.max(0, Math.min(sa.high,sb.high) - Math.max(sa.low,sb.low) + 1);
-  return total;
+function rebuildTBL(table) {
+  let lines = [`>Feature ${table.seqId}`];
+  for (const f of table.features) {
+    const coords = f.spans.map(s => {
+      const p5 = f.partial5 && f.spans[0]===s ? '<' : '';
+      const p3 = f.partial3 && f.spans[f.spans.length-1]===s ? '>' : '';
+      return `${p5}${s.start}\t${p3}${s.end}`;
+    });
+    lines.push(`${coords[0]}\t${f.type}`);
+    for (let i = 1; i < coords.length; i++) lines.push(coords[i]);
+    for (const [key, vals] of Object.entries(f.qualifiers)) {
+      for (const v of vals) lines.push(`\t\t\t${key}\t${v}`);
+    }
+  }
+  return lines.join('\n');
 }
 
+function isTransSplicedFeature(f) {
+  if (f.transSplicing) return true;
+  if (f.spans && f.spans.length > 1) {
+    const strands = new Set(f.spans.map(s => s.strand));
+    if (strands.size > 1) return true;
+  }
+  return false;
+}
+
+function flen(f) {
+  return f.spans.reduce((a, s) => a + (s.high - s.low + 1), 0);
+}
+
+function cdsWithinGene(cds, gene) {
+  if (!isTransSplicedFeature(cds)) {
+    return cds.spans.every(s => s.low >= gene.low && s.high <= gene.high);
+  }
+  for (const cs of cds.spans) {
+    const withinEnvelope = cs.low >= gene.low && cs.high <= gene.high;
+    if (withinEnvelope) continue;
+    const overlapsGeneSpan = gene.spans.some(gs =>
+      Math.min(cs.high, gs.high) - Math.max(cs.low, gs.low) + 1 > 0
+    );
+    if (!overlapsGeneSpan) return false;
+  }
+  return true;
+}
+
+function norm(s) { return s ? s.trim().toLowerCase() : null; }
+function spansOverlap(a, b) {
+  let total = 0;
+  for (const sa of a.spans) for (const sb of b.spans) total += Math.max(0, Math.min(sa.high,sb.high) - Math.max(sa.low,sb.low) + 1);
+  return total;
+}
 function featLabel(f) {
   if (!f) return '?';
   const n = f.geneName || f.productName || '?';
   const sp = f.spans.map(s => s.strand==='-' ? `c${s.start}-${s.end}` : `${s.start}-${s.end}`).join(',');
   return `${f.type}(${n}) @ ${sp}`;
 }
-
 function getOrganismDisplayName(type) {
   const names = {
-    invertebrate_mito: 'Invertebrate Mitochondrial',
-    vertebrate_mito: 'Vertebrate Mitochondrial',
-    echinoderm_mito: 'Echinoderm/Flatworm Mitochondrial',
-    ascidian_mito: 'Ascidian Mitochondrial',
-    trematode_mito: 'Trematode Mitochondrial',
-    pterobranchia_mito: 'Pterobranchia Mitochondrial',
-    standard: 'Standard genetic code (Plant Mitochondrial)',
-    bacterial_plant_plastid: 'Bacterial/Plant Plastid',
-    chlorophycean_mito: 'Chlorophycean Mitochondrial',
-    yeast_mito: 'Yeast Mitochondrial',
-    mold_protozoan_mito: 'Mold/Protozoan Mitochondrial',
-    alternative_yeast: 'Alternative Yeast Nuclear',
+    invertebrate_mito: 'Invertebrate Mitochondrial', vertebrate_mito: 'Vertebrate Mitochondrial',
+    echinoderm_mito: 'Echinoderm/Flatworm Mitochondrial', ascidian_mito: 'Ascidian Mitochondrial',
+    trematode_mito: 'Trematode Mitochondrial', pterobranchia_mito: 'Pterobranchia Mitochondrial',
+    standard: 'Standard genetic code', bacterial_plant_plastid: 'Bacterial/Plant Plastid',
+    chlorophycean_mito: 'Chlorophycean Mitochondrial', yeast_mito: 'Yeast Mitochondrial',
+    mold_protozoan_mito: 'Mold/Protozoan Mitochondrial', alternative_yeast: 'Alternative Yeast Nuclear',
   };
   return names[type] || type;
 }
 
-function validate(table, organism) {
-  const issues = [];
-  const add = (sev, code, msg, f1, f2) => issues.push({ sev, code, msg, f1, f2 });
-
-  const features = table.features;
-  const genes  = features.filter(f=>f.type==='gene');
-  const cdss   = features.filter(f=>f.type==='CDS');
-  const trnas  = features.filter(f=>f.type==='tRNA');
-  const rrnas  = features.filter(f=>f.type==='rRNA');
-  const rnas   = [...trnas, ...rrnas];
-
-  for (const f of features) {
-    if (!f.spans.length)
-      add('CRITICAL','NO_COORDINATES',`Feature '${f.type}' has no coordinates.`,f);
-
-    const g = f.geneName;
-    if (g && /^\d+$/.test(g))
-      add('CRITICAL','GENE_NAME_IS_NUMBER',
-        `gene qualifier is a raw number "${g}" — coordinate pasted into gene name field.\nFeature: ${featLabel(f)}`, f);
-
-    if (g && /\s/.test(g))
-      add('WARNING','GENE_NAME_WHITESPACE',
-        `Gene name "${g}" contains whitespace.\nFeature: ${featLabel(f)}`, f);
-
-    if (g && /\s+\d+$/.test(g))
-      add('WARNING','GENE_NAME_NUMBER_SUFFIX',
-        `Gene name "${g}" looks like auto-numbered (e.g. "gene 1").\nFeature: ${featLabel(f)}`, f);
-
-    if (f.spans.length > 1) {
-      const strands = new Set(f.spans.map(s=>s.strand));
-      const gn = norm(f.geneName);
-      const isTransSpliced = gn && TRANS_SPLICED.has(gn);
-      if (strands.size > 1 && !isTransSpliced)
-        add('CRITICAL','MIXED_STRAND_IN_FEATURE',
-          `Mixed strand directions in feature: ${featLabel(f)}`, f);
-    }
-
-    for (const k of Object.keys(f.qualifiers)) {
-      if (FORBIDDEN_Q.has(k))
-        add('CRITICAL','FORBIDDEN_QUALIFIER',
-          `Qualifier '${k}' must NOT appear in .tbl files.\nFeature: ${featLabel(f)}`, f);
-      if (INVALID_Q.has(k))
-        add('WARNING','INVALID_QUALIFIER',
-          `Qualifier '${k}' is invalid (BLAST/tool artefact?)\nFeature: ${featLabel(f)}`, f);
-      if (f.type==='gene' && ['product','codon_start','protein_id'].includes(k))
-        add('WARNING','QUALIFIER_ON_GENE',
-          `Qualifier '${k}' should be on CDS/tRNA, not on gene feature.\nFeature: ${featLabel(f)}`, f);
-    }
-  }
-
-  const nameToGenes = {};
-  for (const g of genes) {
-    const key = norm(g.geneName);
-    if (key) { if (!nameToGenes[key]) nameToGenes[key]=[];
-               nameToGenes[key].push(g); }
-  }
-
-  const geneHasChild = new Map(genes.map(g=>[g,false]));
-  const cdsHasGene   = new Map(cdss.map(c=>[c,false]));
-  const rnaHasGene   = new Map(rnas.map(r=>[r,false]));
-
-  for (const cds of cdss) {
-    const cn = norm(cds.geneName);
-    let matched = null;
-
-    if (cn && nameToGenes[cn]) {
-      const outsideCandidates = [];
-      for (const g of nameToGenes[cn]) {
-        const allIn = cds.spans.every(s => s.low >= g.low && s.high <= g.high);
-        if (allIn) { matched = g; break; }
-        else outsideCandidates.push(g);
-      }
-      if (!matched) {
-        for (const g of outsideCandidates) {
-          const overshoot = Math.max(0, g.low - cds.low) + Math.max(0, cds.high - g.high);
-          if (overshoot > 1)
-            add('WARNING','CDS_OUTSIDE_GENE',
-              `CDS ${featLabel(cds)} shares gene name with ${featLabel(g)} but CDS extends ${overshoot} bp outside the gene boundary.`,cds,g);
-        }
-        if (outsideCandidates.length) matched = outsideCandidates[0];
-      }
-    }
-
-    if (!matched) {
-      for (const g of genes) {
-        if (spansOverlap(cds,g)>0) {
-          const gn = norm(g.geneName);
-          if (cn && gn && cn!==gn)
-            add('WARNING','GENE_CDS_NAME_MISMATCH',
-              `CDS has gene="${cds.geneName}" but overlapping gene has gene="${g.geneName}"\nCDS: ${featLabel(cds)}`,cds,g);
-          matched = g; break;
-        }
-      }
-    }
-
-    if (matched) { geneHasChild.set(matched,true); cdsHasGene.set(cds,true); }
-    else add('CRITICAL','CDS_WITHOUT_GENE',
-      `CDS has no associated gene feature: ${featLabel(cds)}\n→ NCBI will reject: "CDS not associated with a gene"`, cds);
-  }
-
-  for (const rna of rnas) {
-    const rn = norm(rna.geneName);
-    let matched = null;
-    if (rn && nameToGenes[rn]) {
-      for (const g of nameToGenes[rn])
-        if (spansOverlap(rna,g)>0) { matched=g; break; }
-    }
-    if (!matched)
-      for (const g of genes)
-        if (spansOverlap(rna,g)>0) { matched=g; break; }
-
-    if (matched) { geneHasChild.set(matched,true); rnaHasGene.set(rna,true); }
-    else add('CRITICAL','RNA_WITHOUT_GENE',
-      `${rna.type} has no associated gene feature: ${featLabel(rna)}`, rna);
-  }
-
-  for (const g of genes) {
-    if (!geneHasChild.get(g))
-      add('CRITICAL','GENE_WITHOUT_CHILD',
-        `Gene feature has no associated CDS or RNA: ${featLabel(g)}\nEvery gene must have a child feature.`, g);
-  }
-
-  for (const [name, glist] of Object.entries(nameToGenes)) {
-    if (glist.length>1) {
-      const coords = glist.map(g=>`${g.low}-${g.high}`);
-      if (new Set(coords).size===coords.length)
-        add('WARNING','DUPLICATE_GENE_NAME',
-          `Gene name "${name}" appears ${glist.length}× with different coords: ${coords.join(', ')}`, glist[0]);
-    }
-  }
-
-  for (const g of genes) {
-    const gn = norm(g.geneName);
-    if (gn && TRANS_SPLICED.has(gn)) continue;
-    const gs = g.spans[0]?.strand ?? '?';
-    for (const f of features) {
-      if (f===g) continue;
-      const fn = norm(f.geneName);
-      if (fn && gn && fn===gn && f.spans.length) {
-        const fs = f.spans[0].strand;
-        if (fs !== gs)
-          add('CRITICAL','STRAND_MISMATCH',
-            `Strand mismatch: ${featLabel(g)} is ${gs} but associated ${featLabel(f)} is ${fs}`, g, f);
-      }
-    }
-  }
-
-  for (const cds of cdss) {
-    for (const rna of rnas) {
-      const ov = spansOverlap(cds,rna);
-      if (ov > MAX_OVERLAP)
-        add('CRITICAL','ILLEGAL_CDS_RNA_OVERLAP',
-          `Overlap is too long: ${ov} bp\n  CDS  "${cds.geneName||'?'}"  ${featLabel(cds).split('@ ')[1]}\n  ${rna.type} "${rna.productName||rna.geneName||'?'}"  ${featLabel(rna).split('@ ')[1]}\n→ NCBI rejects CDS↔RNA overlaps > ${MAX_OVERLAP} bp. Adjust coordinates.`, cds, rna);
-      else if (ov>0)
-        add('INFO','SMALL_CDS_RNA_OVERLAP',
-          `Small overlap (${ov} bp) within tolerance: CDS "${cds.geneName}" ↔ ${rna.type} "${rna.geneName||rna.productName}"`, cds, rna);
-    }
-  }
-  for (let i=0;i<cdss.length;i++)
-    for (let j=i+1;j<cdss.length;j++) {
-      const ov=spansOverlap(cdss[i],cdss[j]);
-      if (ov>0)
-        add('WARNING','CDS_CDS_OVERLAP',
-          `CDS features overlap by ${ov} bp: ${featLabel(cdss[i])} ↔ ${featLabel(cdss[j])}`, cdss[i], cdss[j]);
-    }
-
-  for (const f of features) {
-    if (f.type==='tRNA') {
-      const len=flen(f);
-      if (len<60||len>100)
-        add('WARNING','TRNA_UNUSUAL_SIZE',
-          `tRNA ${featLabel(f)} length ${len} bp outside expected 60–100 bp range`, f);
-      if (!f.productName)
-        add('WARNING','TRNA_MISSING_PRODUCT',`tRNA ${featLabel(f)} has no product qualifier`,f);
-    }
-    if (f.type==='rRNA') {
-      if (!f.productName)
-        add('WARNING','RRNA_MISSING_PRODUCT',`rRNA ${featLabel(f)} has no product qualifier`,f);
-    }
-    if (f.type==='CDS') {
-      const cs_str = f.qualifiers['codon_start']?.[0] || '1';
-      const cs = parseInt(cs_str)||1;
-      if (![1,2,3].includes(cs))
-        add('CRITICAL','INVALID_CODON_START',`codon_start=${cs} is invalid (must be 1,2,3)\n${featLabel(f)}`,f);
-
-      const cdsLen = flen(f);
-      const eff = cdsLen-(cs-1);
-      if (!f.partial3 && eff%3!==0)
-        add('WARNING','CDS_NOT_DIV3',
-          `CDS ${featLabel(f)} effective length ${eff} bp not divisible by 3 (codon_start=${cs}). Check for frameshifts.`,f);
-
-      if (cdsLen<100 && !f.partial5 && !f.partial3)
-        add('WARNING','SUSPICIOUS_CDS_LENGTH',
-          `CDS ${featLabel(f)} is only ${cdsLen} bp — unusually short for a complete CDS`,f);
-
-      if (!f.qualifiers['codon_start'])
-        add('INFO','MISSING_CODON_START',
-          `CDS ${featLabel(f)} lacks codon_start qualifier (defaults to 1)`,f);
-
-      if (!f.productName)
-        add('WARNING','MISSING_PRODUCT',`CDS ${featLabel(f)} lacks product qualifier`,f);
-
-      if (!f.qualifiers['transl_table'])
-        add('WARNING','MISSING_TRANSL_TABLE',
-          `CDS ${featLabel(f)} lacks transl_table (e.g. 2=animal mt, 11=plant plastid)`,f);
-
-      const gn=norm(f.geneName);
-      if (gn && TRANS_SPLICED.has(gn) && f.spans.length<2)
-        add('WARNING','TRANS_SPLICED_SINGLE_SPAN',
-          `Gene "${f.geneName}" is known to be trans-spliced but CDS has only one span. Expected join() with multiple segments.`,f);
-    }
-  }
-
-  const presentGenes = new Set(features.map(f=>norm(f.geneName)).filter(Boolean));
-  const expected = EXPECTED_GENES[organism] || DEFAULT_EXPECTED;
-  const missing = [...expected].filter(g=>!presentGenes.has(g));
-  if (missing.length)
-    add('INFO','POSSIBLY_MISSING_GENES',
-      `Possibly missing expected genes (may be unannotated or absent):\n${missing.sort().join(', ')}`);
-
-  const expectedCode = EXPECTED_TRANSL_TABLE[organism];
-  if (expectedCode) {
-    for (const cds of cdss) {
-      const actualCode = cds.qualifiers['transl_table']?.[0];
-      if (actualCode && parseInt(actualCode) !== expectedCode) {
-        add('WARNING','UNEXPECTED_TRANSL_TABLE',
-          `CDS ${featLabel(cds)} uses transl_table=${actualCode} but ${getOrganismDisplayName(organism)} typically uses code ${expectedCode}.\nDouble-check that the genetic code is correct for your organism.`, cds);
-      }
-    }
-  }
-
-  return issues;
-}
-
-// ── Genetic Code Loader ──────────────────────────────────────────────────────
 let GENETIC_CODES = null;
 
 async function loadGeneticCodes() {
@@ -1039,374 +1226,1179 @@ async function loadGeneticCodes() {
   
   try {
     const res = await fetch('genetic_codes.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const raw = await res.json();
     
     GENETIC_CODES = {};
-    for (const [key, value] of Object.entries(data)) {
-      if (value && typeof value.id === 'number') {
-        GENETIC_CODES[value.id] = value;
+    for (const [key, code] of Object.entries(raw)) {
+      if (code && typeof code.id === 'number') {
+        GENETIC_CODES[code.id] = {
+          id: code.id,
+          name: code.name || `Code ${code.id}`,
+          aa: code.table || code.aa || {},
+          start: code.start || code.start_codons || [],
+          stop: code.stop || code.stop_codons || []
+        };
       }
     }
-    console.log(`Genetic codes loaded: ${Object.keys(GENETIC_CODES).length} codes`);
+    
+    console.log(`Loaded ${Object.keys(GENETIC_CODES).length} genetic codes from genetic_codes.json`);
   } catch (e) {
-    console.warn('Could not load genetic_codes.json, using built-in codes');
-    GENETIC_CODES = {
-      1: { id: 1, name: "Standard", table: {"TTT":"F","TTC":"F","TTA":"L","TTG":"L","TCT":"S","TCC":"S","TCA":"S","TCG":"S","TAT":"Y","TAC":"Y","TAA":"*","TAG":"*","TGT":"C","TGC":"C","TGA":"*","TGG":"W","CTT":"L","CTC":"L","CTA":"L","CTG":"L","CCT":"P","CCC":"P","CCA":"P","CCG":"P","CAT":"H","CAC":"H","CAA":"Q","CAG":"Q","CGT":"R","CGC":"R","CGA":"R","CGG":"R","ATT":"I","ATC":"I","ATA":"I","ATG":"M","ACT":"T","ACC":"T","ACA":"T","ACG":"T","AAT":"N","AAC":"N","AAA":"K","AAG":"K","AGT":"S","AGC":"S","AGA":"R","AGG":"R","GTT":"V","GTC":"V","GTA":"V","GTG":"V","GCT":"A","GCC":"A","GCA":"A","GCG":"A","GAT":"D","GAC":"D","GAA":"E","GAG":"E","GGT":"G","GGC":"G","GGA":"G","GGG":"G"} },
-      2: { id: 2, name: "Vertebrate Mitochondrial", table: {"TTT":"F","TTC":"F","TTA":"L","TTG":"L","TCT":"S","TCC":"S","TCA":"S","TCG":"S","TAT":"Y","TAC":"Y","TAA":"*","TAG":"*","TGT":"C","TGC":"C","TGA":"W","TGG":"W","CTT":"L","CTC":"L","CTA":"L","CTG":"L","CCT":"P","CCC":"P","CCA":"P","CCG":"P","CAT":"H","CAC":"H","CAA":"Q","CAG":"Q","CGT":"R","CGC":"R","CGA":"R","CGG":"R","ATT":"I","ATC":"I","ATA":"M","ATG":"M","ACT":"T","ACC":"T","ACA":"T","ACG":"T","AAT":"N","AAC":"N","AAA":"K","AAG":"K","AGT":"S","AGC":"S","AGA":"*","AGG":"*","GTT":"V","GTC":"V","GTA":"V","GTG":"V","GCT":"A","GCC":"A","GCA":"A","GCG":"A","GAT":"D","GAC":"D","GAA":"E","GAG":"E","GGT":"G","GGC":"G","GGA":"G","GGG":"G"} },
-      5: { id: 5, name: "Invertebrate Mitochondrial", table: {"TTT":"F","TTC":"F","TTA":"L","TTG":"L","TCT":"S","TCC":"S","TCA":"S","TCG":"S","TAT":"Y","TAC":"Y","TAA":"*","TAG":"*","TGT":"C","TGC":"C","TGA":"W","TGG":"W","CTT":"L","CTC":"L","CTA":"L","CTG":"L","CCT":"P","CCC":"P","CCA":"P","CCG":"P","CAT":"H","CAC":"H","CAA":"Q","CAG":"Q","CGT":"R","CGC":"R","CGA":"R","CGG":"R","ATT":"I","ATC":"I","ATA":"M","ATG":"M","ACT":"T","ACC":"T","ACA":"T","ACG":"T","AAT":"N","AAC":"N","AAA":"K","AAG":"K","AGT":"S","AGC":"S","AGA":"S","AGG":"S","GTT":"V","GTC":"V","GTA":"V","GTG":"V","GCT":"A","GCC":"A","GCA":"A","GCG":"A","GAT":"D","GAC":"D","GAA":"E","GAG":"E","GGT":"G","GGC":"G","GGA":"G","GGG":"G"} },
-      11: { id: 11, name: "Bacterial/Plant Plastid", table: {"TTT":"F","TTC":"F","TTA":"L","TTG":"L","TCT":"S","TCC":"S","TCA":"S","TCG":"S","TAT":"Y","TAC":"Y","TAA":"*","TAG":"*","TGT":"C","TGC":"C","TGA":"*","TGG":"W","CTT":"L","CTC":"L","CTA":"L","CTG":"L","CCT":"P","CCC":"P","CCA":"P","CCG":"P","CAT":"H","CAC":"H","CAA":"Q","CAG":"Q","CGT":"R","CGC":"R","CGA":"R","CGG":"R","ATT":"I","ATC":"I","ATA":"I","ATG":"M","ACT":"T","ACC":"T","ACA":"T","ACG":"T","AAT":"N","AAC":"N","AAA":"K","AAG":"K","AGT":"S","AGC":"S","AGA":"R","AGG":"R","GTT":"V","GTC":"V","GTA":"V","GTG":"V","GCT":"A","GCC":"A","GCA":"A","GCG":"A","GAT":"D","GAC":"D","GAA":"E","GAG":"E","GGT":"G","GGC":"G","GGA":"G","GGG":"G"} }
-    };
+    console.error('Failed to load genetic_codes.json â€” translation features disabled');
+    console.error(e.message);
+    GENETIC_CODES = null;
   }
 }
 
 function getGeneticCodeById(id) {
-  if (!GENETIC_CODES || Object.keys(GENETIC_CODES).length === 0) return null;
+  if (!GENETIC_CODES) return null;
   return GENETIC_CODES[id] || null;
 }
 
-// ── Codon Visualization ──────────────────────────────────────────────────────
+function resolveGeneticCode(cds) {
+  if (!GENETIC_CODES) return null;
+  
+  const tt = cds?.qualifiers?.['transl_table']?.[0];
+  if (tt) {
+    const id = parseInt(tt);
+    const code = getGeneticCodeById(id);
+    if (code) return code;
+  }
+  
+  const organism = document.getElementById('organism')?.value;
+  if (organism) {
+    const organismCodeMap = {
+      standard: 1, vertebrate_mito: 2, yeast_mito: 3,
+      mold_protozoan_mito: 4, invertebrate_mito: 5,
+      echinoderm_mito: 9, ascidian_mito: 13,
+      trematode_mito: 21, pterobranchia_mito: 24,
+      bacterial_plant_plastid: 11, chlorophycean_mito: 16,
+      alternative_yeast: 12
+    };
+    const codeId = organismCodeMap[organism];
+    if (codeId) {
+      const code = getGeneticCodeById(codeId);
+      if (code) return code;
+    }
+  }
+  
+  return null;
+}
+
+function translate(sequence, geneticCode) {
+  if (!geneticCode?.aa) return '';
+  const aa = geneticCode.aa;
+  let protein = '';
+  for (let i = 0; i + 2 < sequence.length; i += 3) {
+    const codon = sequence.substring(i, i + 3);
+    protein += aa[codon] || 'X';
+  }
+  return protein;
+}
+
+function isValidStartCodon(codon, geneticCode) {
+  if (!geneticCode?.start) return false;
+  return geneticCode.start.includes(codon);
+}
+
+function isStopCodon(codon, geneticCode) {
+  if (!geneticCode?.aa) return false;
+  return geneticCode.aa[codon] === '*';
+}
+
+function hasInternalStops(proteinSeq) {
+  for (let i = 0; i < proteinSeq.length - 1; i++) {
+    if (proteinSeq[i] === '*') return true;
+  }
+  return false;
+}
+
+const FORBIDDEN_Q = new Set(['protein_id','transcript_id']);
+const INVALID_Q   = new Set(['label','standard_name','blast_score','e_value','percent_identity']);
+const MAX_OVERLAP = 3;
+
+const EXPECTED_GENES = {
+  invertebrate_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']),
+  vertebrate_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']),
+  echinoderm_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']),
+  ascidian_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']),
+  trematode_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']),
+  pterobranchia_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']),
+  standard: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','nad7','nad9','cox1','cox2','cox3','atp1','atp4','atp6','atp8','atp9','cob','matr','mttb']),
+  bacterial_plant_plastid: new Set(['rbcL','psbA','psbB','psbC','psbD','atpA','atpB','atpE','atpF','rpoA','rpoB','rpoC1','rpoC2','ndhA','ndhB','ndhC','ndhD','ndhE','ndhF','ndhG','ndhH','ndhI','ndhJ','ndhK','petA','petB','petD','petG','petL','petN','psaA','psaB','psaC','psaI','psaJ','ycf1','ycf2','ycf3','ycf4','matK','clpP','accD','ccsA','cemA','infA']),
+  chlorophycean_mito: new Set(['rbcL','psbA','psbB','atpA','atpB','rpoA','rpoB','ndhA','ndhB','ndhF','ycf1','ycf2','matK','clpP']),
+  yeast_mito: new Set(['cox1','cox2','cox3','atp6','atp8','atp9','cob','var1']),
+  mold_protozoan_mito: new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','atp9','cob']),
+  alternative_yeast: new Set(['cox1','cox2','cox3','atp6','atp8','atp9','cob','var1']),
+};
+
+const DEFAULT_EXPECTED = new Set(['nad1','nad2','nad3','nad4','nad4l','nad5','nad6','cox1','cox2','cox3','atp6','atp8','cob']);
+
+const STANDARD_TRNA_PRODUCTS = new Set([
+  'tRNA-Ala','tRNA-Arg','tRNA-Asn','tRNA-Asp','tRNA-Cys',
+  'tRNA-Gln','tRNA-Glu','tRNA-Gly','tRNA-His','tRNA-Ile',
+  'tRNA-Leu','tRNA-Lys','tRNA-Met','tRNA-Phe','tRNA-Pro',
+  'tRNA-Ser','tRNA-Thr','tRNA-Trp','tRNA-Tyr','tRNA-Val',
+  'tRNA-Sec','tRNA-fMet'
+]);
+
+const STANDARD_RRNA_PRODUCTS = [
+  { pattern: /12S|small.sub|SSU|16S/i,  label: 'Small subunit (12S/16S)' },
+  { pattern: /16S/i,                     label: '16S rRNA' },
+  { pattern: /23S|large.sub|LSU/i,       label: 'Large subunit (23S)' },
+  { pattern: /5S/i,                       label: '5S rRNA' },
+  { pattern: /5\.8S/i,                    label: '5.8S rRNA' },
+  { pattern: /28S|26S/i,                  label: '28S/26S rRNA' },
+];
+
+function validate(table, organism) {
+  const issues = [];
+  const seqId = table.seqId;
+  const add = (sev, code, msg, f1, f2) => issues.push({ sev, code, msg, f1, f2 });
+
+  const features = table.features;
+  const genes  = features.filter(f => f.type === 'gene');
+  const cdss   = features.filter(f => f.type === 'CDS');
+  const trnas  = features.filter(f => f.type === 'tRNA');
+  const rrnas  = features.filter(f => f.type === 'rRNA');
+  const rnas   = [...trnas, ...rrnas];
+
+  for (const f of features) {
+    if (!f.spans.length) add('CRITICAL','NO_COORDINATES',`Feature '${f.type}' has no coordinates.`, f);
+
+    const g = f.geneName;
+    if (g && /^\d+$/.test(g))
+      add('CRITICAL','GENE_NAME_IS_NUMBER',`gene qualifier is a raw number "${g}" â€” coordinate pasted into gene name field.\nFeature: ${featLabel(f)}`, f);
+    if (g && /\s/.test(g))
+      add('WARNING','GENE_NAME_WHITESPACE',`Gene name "${g}" contains whitespace.\nFeature: ${featLabel(f)}`, f);
+    if (g && /\s+\d+$/.test(g))
+      add('WARNING','GENE_NAME_NUMBER_SUFFIX',`Gene name "${g}" looks like auto-numbered (e.g. "gene 1").\nFeature: ${featLabel(f)}`, f);
+
+    if (f.spans.length > 1) {
+      const strands = new Set(f.spans.map(s => s.strand));
+      if (strands.size > 1 && !isTransSplicedFeature(f)) {
+        add('CRITICAL','MIXED_STRAND_IN_FEATURE',`Mixed strand directions in feature (not a known trans-spliced gene): ${featLabel(f)}`, f);
+      }
+      if (strands.size > 1 && isTransSplicedFeature(f)) {
+        add('INFO','TRANS_SPLICED_DETECTED',`Trans-spliced gene detected: ${featLabel(f)} â€” spans on both strands (expected for this gene).`, f);
+      }
+    }
+
+    for (const k of Object.keys(f.qualifiers)) {
+      if (FORBIDDEN_Q.has(k))
+        add('CRITICAL','FORBIDDEN_QUALIFIER',`Qualifier '${k}' must NOT appear in .tbl files.\nFeature: ${featLabel(f)}`, f);
+      if (INVALID_Q.has(k))
+        add('WARNING','INVALID_QUALIFIER',`Qualifier '${k}' is invalid (BLAST/tool artefact?)\nFeature: ${featLabel(f)}`, f);
+      if (f.type === 'gene' && ['product','codon_start','protein_id'].includes(k))
+        add('WARNING','QUALIFIER_ON_GENE',`Qualifier '${k}' should be on CDS/tRNA, not on gene feature.\nFeature: ${featLabel(f)}`, f);
+    }
+  }
+
+  const nameToGenes = {};
+  for (const g of genes) {
+    const key = norm(g.geneName);
+    if (key) { if (!nameToGenes[key]) nameToGenes[key] = []; nameToGenes[key].push(g); }
+  }
+  const geneHasChild = new Map(genes.map(g => [g, false]));
+  const cdsHasGene   = new Map(cdss.map(c => [c, false]));
+  const rnaHasGene   = new Map(rnas.map(r => [r, false]));
+
+  for (const cds of cdss) {
+    const cn = norm(cds.geneName); let matched = null;
+    if (cn && nameToGenes[cn]) {
+      const outsideCandidates = [];
+      for (const g of nameToGenes[cn]) {
+        if (cdsWithinGene(cds, g)) { matched = g; break; }
+        else outsideCandidates.push(g);
+      }
+      if (!matched) {
+        for (const g of outsideCandidates) {
+          if (!isTransSplicedFeature(cds)) {
+            const overshoot = Math.max(0, g.low - cds.low) + Math.max(0, cds.high - g.high);
+            if (overshoot > 1)
+              add('WARNING','CDS_OUTSIDE_GENE',`CDS ${featLabel(cds)} shares gene name with ${featLabel(g)} but CDS extends ${overshoot} bp outside the gene boundary.`, cds, g);
+          }
+        }
+        if (outsideCandidates.length) matched = outsideCandidates[0];
+      }
+    }
+    if (!matched) {
+      for (const g of genes) {
+        if (spansOverlap(cds, g) > 0) {
+          const gn = norm(g.geneName);
+          if (cn && gn && cn !== gn)
+            add('WARNING','GENE_CDS_NAME_MISMATCH',`CDS has gene="${cds.geneName}" but overlapping gene has gene="${g.geneName}"\nCDS: ${featLabel(cds)}`, cds, g);
+          matched = g; break;
+        }
+      }
+    }
+    if (matched) { geneHasChild.set(matched, true); cdsHasGene.set(cds, true); }
+    else add('CRITICAL','CDS_WITHOUT_GENE',`CDS has no associated gene feature: ${featLabel(cds)}\nâ†’ NCBI will reject: "CDS not associated with a gene"`, cds);
+  }
+
+  for (const rna of rnas) {
+    const rn = norm(rna.geneName); let matched = null;
+    if (rn && nameToGenes[rn]) {
+      for (const g of nameToGenes[rn]) if (spansOverlap(rna, g) > 0) { matched = g; break; }
+    }
+    if (!matched) for (const g of genes) if (spansOverlap(rna, g) > 0) { matched = g; break; }
+    if (matched) { geneHasChild.set(matched, true); rnaHasGene.set(rna, true); }
+    else add('CRITICAL','RNA_WITHOUT_GENE',`${rna.type} has no associated gene feature: ${featLabel(rna)}`, rna);
+  }
+
+  for (const g of genes) {
+    if (!geneHasChild.get(g))
+      add('CRITICAL','GENE_WITHOUT_CHILD',`Gene feature has no associated CDS or RNA: ${featLabel(g)}\nEvery gene must have a child feature.`, g);
+  }
+
+  for (const [name, glist] of Object.entries(nameToGenes)) {
+    if (glist.length > 1) {
+      const coords = glist.map(g => `${g.low}-${g.high}`);
+      if (new Set(coords).size === coords.length)
+        add('WARNING','DUPLICATE_GENE_NAME',`Gene name "${name}" appears ${glist.length}Ã— with different coords: ${coords.join(', ')}`, glist[0]);
+    }
+  }
+  for (const g of genes) {
+    if (isTransSplicedFeature(g)) continue;
+    const gn = norm(g.geneName);
+    const gs = g.spans[0]?.strand ?? '?';
+    for (const f of features) {
+      if (f === g) continue;
+      const fn = norm(f.geneName);
+      if (fn && gn && fn === gn && f.spans.length) {
+        if (isTransSplicedFeature(f)) continue;
+        if (f.spans[0].strand !== gs)
+          add('CRITICAL','STRAND_MISMATCH',`Strand mismatch: ${featLabel(g)} is ${gs} but associated ${featLabel(f)} is ${f.spans[0].strand}`, g, f);
+      }
+    }
+  }
+  for (const cds of cdss) {
+    for (const rna of rnas) {
+      const ov = spansOverlap(cds, rna);
+      if (ov > MAX_OVERLAP)
+        add('CRITICAL','ILLEGAL_CDS_RNA_OVERLAP',`Overlap is too long: ${ov} bp\n  CDS  "${cds.geneName||'?'}"  ${featLabel(cds).split('@ ')[1]}\n  ${rna.type} "${rna.productName||rna.geneName||'?'}"  ${featLabel(rna).split('@ ')[1]}\nâ†’ NCBI rejects CDSâ†”RNA overlaps > ${MAX_OVERLAP} bp. Adjust coordinates.`, cds, rna);
+      else if (ov > 0)
+        add('INFO','SMALL_CDS_RNA_OVERLAP',`Small overlap (${ov} bp) within tolerance: CDS "${cds.geneName}" â†” ${rna.type} "${rna.geneName||rna.productName}"`, cds, rna);
+    }
+  }
+  for (let i = 0; i < cdss.length; i++) for (let j = i+1; j < cdss.length; j++) {
+    const ov = spansOverlap(cdss[i], cdss[j]);
+    if (ov > 0) add('WARNING','CDS_CDS_OVERLAP',`CDS features overlap by ${ov} bp: ${featLabel(cdss[i])} â†” ${featLabel(cdss[j])}`, cdss[i], cdss[j]);
+  }
+
+  for (const f of features) {
+    if (f.type === 'tRNA') {
+      const len = flen(f);
+      if (len < 60 || len > 100) add('WARNING','TRNA_UNUSUAL_SIZE',`tRNA ${featLabel(f)} length ${len} bp outside expected 60â€“100 bp range`, f);
+      if (!f.productName) add('WARNING','TRNA_MISSING_PRODUCT',`tRNA ${featLabel(f)} has no product qualifier`, f);
+    }
+    if (f.type === 'rRNA') {
+      if (!f.productName) add('WARNING','RRNA_MISSING_PRODUCT',`rRNA ${featLabel(f)} has no product qualifier`, f);
+    }
+
+    if (f.type === 'CDS') {
+      const cs_str = f.qualifiers['codon_start']?.[0] || '1';
+      const cs = parseInt(cs_str) || 1;
+      if (![1,2,3].includes(cs))
+        add('CRITICAL','INVALID_CODON_START',`codon_start=${cs} is invalid (must be 1,2,3)\n${featLabel(f)}`, f);
+
+      const cdsLen = flen(f);
+      const eff = cdsLen - (cs - 1);
+      const ts = isTransSplicedFeature(f);
+
+      if (!f.partial3 && !ts) {
+        if (eff % 3 === 1) {
+          add('INFO','ABBREVIATED_STOP_CODON',`CDS ${featLabel(f)} ends with single T â€” abbreviated stop codon (TAA completed by poly-A tail). This is normal for many mitochondrial CDS.`, f);
+        } else if (eff % 3 !== 0) {
+          add('WARNING','CDS_NOT_DIV3',`CDS ${featLabel(f)} effective length ${eff} bp not divisible by 3 (codon_start=${cs}). Check for frameshifts.`, f);
+        }
+      }
+      if (!f.partial3 && ts) {
+        if (eff % 3 === 1) {
+          add('INFO','ABBREVIATED_STOP_CODON',`Trans-spliced CDS ${featLabel(f)} ends with single T â€” abbreviated stop codon. This is normal.`, f);
+        } else if (eff % 3 !== 0) {
+          add('WARNING','CDS_NOT_DIV3',`Trans-spliced CDS ${featLabel(f)} joined length ${eff} bp not divisible by 3. Verify exon boundaries.`, f);
+        }
+      }
+
+      if (cdsLen < 100 && !f.partial5 && !f.partial3 && !ts)
+        add('WARNING','SUSPICIOUS_CDS_LENGTH',`CDS ${featLabel(f)} is only ${cdsLen} bp â€” unusually short for a complete CDS`, f);
+      if (!f.qualifiers['codon_start'])
+        add('INFO','MISSING_CODON_START',`CDS ${featLabel(f)} lacks codon_start qualifier (defaults to 1)`, f);
+      if (!f.productName)
+        add('WARNING','MISSING_PRODUCT',`CDS ${featLabel(f)} lacks product qualifier`, f);
+
+      if (!f.qualifiers['transl_table']) {
+        add('WARNING','MISSING_TRANSL_TABLE',
+          `CDS ${featLabel(f)} lacks transl_table qualifier. NCBI requires explicit transl_table for all CDS features.`, f);
+      } else {
+        const tt = parseInt(f.qualifiers['transl_table'][0]);
+        if (!getGeneticCodeById(tt)) {
+          add('WARNING','UNKNOWN_TRANSL_TABLE',
+            `CDS ${featLabel(f)} uses transl_table=${tt} which is not recognized. Verify the NCBI genetic code number.`, f);
+        }
+      }
+
+      if (f.transSplicing && f.spans.length < 2) {
+        add('WARNING','TRANS_SPLICED_SINGLE_SPAN',
+          `CDS "${f.geneName}" has /trans_splicing qualifier but only one span. Expected join() with multiple exons.`, f);
+      }
+    }
+  }
+
+  const coordSeen = new Map();
+  for (const f of features) {
+    const key = f.spans.map(s => `${s.start}-${s.end}`).join(';') + ':' + f.type;
+    if (coordSeen.has(key)) {
+      add('WARNING', 'DUPLICATE_COORDINATES',
+        `Two features share identical coordinates and type:\n  ${featLabel(coordSeen.get(key))}\n  ${featLabel(f)}`, f, coordSeen.get(key));
+    } else coordSeen.set(key, f);
+  }
+
+  for (const r of rrnas) {
+    const len = flen(r);
+    const prod = (r.productName || '').toLowerCase();
+    if (/12s|small|ssu/.test(prod) && (len < 500 || len > 1100))
+      add('WARNING', 'RRNA_UNUSUAL_SIZE',
+        `rRNA "${r.productName}" length ${len} bp â€” small subunit rRNA typically 700â€“1000 bp`, r);
+    if (/16s/.test(prod) && (len < 1200 || len > 1800))
+      add('WARNING', 'RRNA_UNUSUAL_SIZE',
+        `rRNA "${r.productName}" length ${len} bp â€” 16S rRNA typically 1400â€“1600 bp`, r);
+    if (/23s|large|lsu/.test(prod) && (len < 2500 || len > 3500))
+      add('WARNING', 'RRNA_UNUSUAL_SIZE',
+        `rRNA "${r.productName}" length ${len} bp â€” large subunit rRNA typically 2800â€“3300 bp`, r);
+  }
+
+  if (_fastaLoaded) {
+    for (const cds of cdss) {
+      const seq = extractCDSSequence(cds, seqId);
+      if (!seq || seq.length < 3 || cds.partial5) continue;
+      const cs = parseInt(cds.qualifiers['codon_start']?.[0] || '1');
+      const startCodon = seq.slice(cs-1).substr(0, 3);
+      const code = resolveGeneticCode(cds);
+      if (code && code.start && !code.start.includes(startCodon)) {
+        add('WARNING', 'INVALID_START_CODON',
+          `CDS "${cds.geneName||'?'}" starts with ${startCodon} which is not a valid start codon for genetic code ${code.id} (${code.name}).\nValid starts: ${code.start.join(', ')}`, cds);
+      } else if (code && code.start && startCodon !== 'ATG' && code.start.includes(startCodon)) {
+        add('INFO', 'ALTERNATIVE_START_CODON',
+          `CDS "${cds.geneName||'?'}" uses non-canonical start codon ${startCodon} (valid alternative for code ${code.id}).`, cds);
+      }
+    }
+  }
+
+  if (_fastaLoaded) {
+    for (const cds of cdss) {
+      const seq = extractCDSSequence(cds, seqId);
+      if (!seq) continue;
+      const cs = parseInt(cds.qualifiers['codon_start']?.[0] || '1');
+      const adj = seq.slice(cs - 1);
+      const code = resolveGeneticCode(cds);
+      if (!code) continue;
+      let internalStopPos = -1;
+      for (let i = 0; i + 2 < adj.length - 3; i += 3) {
+        if (isStopCodon(adj.substr(i, 3), code)) { internalStopPos = i; break; }
+      }
+      if (internalStopPos >= 0) {
+        const codon = adj.substr(internalStopPos, 3);
+        const aaPos = Math.floor(internalStopPos / 3) + 1;
+        add('CRITICAL', 'INTERNAL_STOP_CODON',
+          `CDS "${cds.geneName||'?'}" has an internal stop codon (${codon}) at amino acid position ${aaPos}.\n` +
+          `This indicates a frameshift, wrong genetic code, or incorrect exon boundaries.`, cds);
+      }
+    }
+  }
+
+  const presentGenes = new Set(features.map(f => norm(f.geneName)).filter(Boolean));
+  const expected = EXPECTED_GENES[organism] || DEFAULT_EXPECTED;
+  const missing = [...expected].filter(g => !presentGenes.has(g));
+  if (missing.length)
+    add('INFO','POSSIBLY_MISSING_GENES',`Possibly missing expected genes (may be unannotated or absent):\n${missing.sort().join(', ')}`);
+
+  return issues;
+}
+
+function computeGenomeStats(features, seqId, organism) {
+  const cdss  = features.filter(f => f.type === 'CDS');
+  const trnas = features.filter(f => f.type === 'tRNA');
+  const rrnas = features.filter(f => f.type === 'rRNA');
+  const genes = features.filter(f => f.type === 'gene');
+  const misc  = features.filter(f => !['gene','CDS','tRNA','rRNA'].includes(f.type));
+  const tsFeat = features.filter(f => isTransSplicedFeature(f) && f.type === 'CDS');
+
+  let seqLen = 0, gcCount = 0, atCount = 0, gcSkew = 0, atSkew = 0;
+  let seqAvailable = false;
+  const fullSeq = _fastaSequences[seqId];
+  if (fullSeq) {
+    seqAvailable = true;
+    seqLen = fullSeq.length;
+    let g = 0, c = 0, a = 0, t = 0;
+    for (const ch of fullSeq) {
+      if (ch === 'G') g++;
+      else if (ch === 'C') c++;
+      else if (ch === 'A') a++;
+      else if (ch === 'T') t++;
+    }
+    gcCount = g + c;
+    atCount = a + t;
+    gcSkew  = (g + c) > 0 ? ((g - c) / (g + c)) : 0;
+    atSkew  = (a + t) > 0 ? ((a - t) / (a + t)) : 0;
+  } else {
+    const maxCoord = Math.max(...features.flatMap(f => f.spans.map(s => s.high)), 0);
+    seqLen = maxCoord;
+  }
+
+  const cdsLengths = cdss.map(f => flen(f));
+  const totalCDSbp = cdsLengths.reduce((a, b) => a + b, 0);
+  const avgCDSLen  = cdss.length > 0 ? Math.round(totalCDSbp / cdss.length) : 0;
+  const minCDSLen  = cdss.length > 0 ? Math.min(...cdsLengths) : 0;
+  const maxCDSLen  = cdss.length > 0 ? Math.max(...cdsLengths) : 0;
+  const shortestCDS = cdss.length > 0 ? cdss[cdsLengths.indexOf(minCDSLen)] : null;
+  const longestCDS  = cdss.length > 0 ? cdss[cdsLengths.indexOf(maxCDSLen)] : null;
+  const codingDensity = seqLen > 0 ? ((totalCDSbp / seqLen) * 100) : 0;
+
+  const plusStrand  = cdss.filter(f => f.spans[0]?.strand === '+').length;
+  const minusStrand = cdss.filter(f => f.spans[0]?.strand === '-').length;
+  const tsPlusSpans  = tsFeat.reduce((a, f) => a + f.spans.filter(s => s.strand === '+').length, 0);
+  const tsMinusSpans = tsFeat.reduce((a, f) => a + f.spans.filter(s => s.strand === '-').length, 0);
+
+  const partial5Count = features.filter(f => f.partial5).length;
+  const partial3Count = features.filter(f => f.partial3).length;
+
+  const annotated = [...cdss, ...trnas, ...rrnas]
+    .filter(f => f.spans.length > 0)
+    .sort((a, b) => a.low - b.low);
+  const intergenicGaps = [];
+  for (let i = 1; i < annotated.length; i++) {
+    const gap = annotated[i].low - annotated[i-1].high - 1;
+    if (gap > 0) intergenicGaps.push({ size: gap, after: annotated[i-1], before: annotated[i] });
+  }
+  const totalIntergenic = intergenicGaps.reduce((a, g) => a + g.size, 0);
+  const largestIntergenic = intergenicGaps.length > 0
+    ? intergenicGaps.reduce((a, b) => b.size > a.size ? b : a)
+    : null;
+  const avgIntergenic = intergenicGaps.length > 0
+    ? Math.round(totalIntergenic / intergenicGaps.length) : 0;
+
+  const presentTRNA = new Set(trnas.map(t => {
+    const p = t.productName || '';
+    return p.replace(/\(.*\)/, '').trim();
+  }));
+  const missingTRNA = [...STANDARD_TRNA_PRODUCTS].filter(t => !presentTRNA.has(t));
+  const trnaCounts = {};
+  for (const t of trnas) {
+    const aa = (t.productName || 'Unknown').replace(/\(.*\)/, '').trim().replace('tRNA-', '');
+    trnaCounts[aa] = (trnaCounts[aa] || 0) + 1;
+  }
+
+  const startCodons = {};
+  const stopCodons  = {};
+  let abbreviatedStopCount = 0;
+
+  if (fullSeq) {
+    for (const cds of cdss) {
+      const seq = extractCDSSequence(cds, seqId);
+      if (!seq || seq.length < 3) continue;
+      const cs  = parseInt(cds.qualifiers['codon_start']?.[0] || '1');
+      const adj = seq.slice(cs - 1);
+      if (adj.length < 3) continue;
+
+      const start = adj.substr(0, 3);
+      startCodons[start] = (startCodons[start] || 0) + 1;
+
+      const hasAbbrev = !cds.partial3 && adj.length % 3 === 1 && adj[adj.length-1] === 'T';
+      if (hasAbbrev) {
+        abbreviatedStopCount++;
+        stopCodons['T(abbrev)'] = (stopCodons['T(abbrev)'] || 0) + 1;
+      } else {
+        const adjForStop = hasAbbrev ? adj.slice(0, -1) : adj;
+        if (adjForStop.length >= 3) {
+          const stop = adjForStop.substr(adjForStop.length - 3, 3);
+          const code = resolveGeneticCode(cds);
+          if (code && code.aa[stop] === '*') {
+            stopCodons[stop] = (stopCodons[stop] || 0) + 1;
+          } else if (!cds.partial3) {
+            stopCodons['none'] = (stopCodons['none'] || 0) + 1;
+          }
+        }
+      }
+    }
+  }
+
+  const codonUsage = {};
+  if (fullSeq) {
+    for (const cds of cdss) {
+      const seq = extractCDSSequence(cds, seqId);
+      if (!seq) continue;
+      const cs  = parseInt(cds.qualifiers['codon_start']?.[0] || '1');
+      const adj = seq.slice(cs - 1);
+      const code = resolveGeneticCode(cds);
+      for (let i = 0; i + 2 < adj.length - 3; i += 3) {
+        const codon = adj.substr(i, 3);
+        if (!/^[ATGC]{3}$/.test(codon)) continue;
+        const aa = code?.aa[codon] || 'X';
+        if (aa === '*') continue;
+        if (!codonUsage[aa]) codonUsage[aa] = {};
+        codonUsage[aa][codon] = (codonUsage[aa][codon] || 0) + 1;
+      }
+    }
+  }
+
+  const cdsGC = [];
+  if (fullSeq) {
+    for (const cds of cdss) {
+      const seq = extractCDSSequence(cds, seqId);
+      if (!seq || seq.length === 0) continue;
+      const g = (seq.match(/G/g) || []).length;
+      const c = (seq.match(/C/g) || []).length;
+      cdsGC.push({ name: cds.geneName || '?', gc: ((g + c) / seq.length * 100) });
+    }
+  }
+
+  const coordMap = {};
+  const duplicateCoords = [];
+  for (const f of features) {
+    const key = f.spans.map(s => `${s.start}-${s.end}`).join(';') + ':' + f.type;
+    if (coordMap[key]) duplicateCoords.push({ a: coordMap[key], b: f });
+    else coordMap[key] = f;
+  }
+
+  const presentRRNA = rrnas.map(r => r.productName || '');
+
+  return {
+    geneCount: genes.length,
+    cdsCount: cdss.length,
+    trnaCount: trnas.length,
+    rrnaCount: rrnas.length,
+    miscCount: misc.length,
+    tsCount: tsFeat.length,
+    partial5Count, partial3Count,
+    seqLen, seqAvailable,
+    gcPct: seqLen > 0 ? (gcCount / seqLen * 100) : 0,
+    atPct: seqLen > 0 ? (atCount / seqLen * 100) : 0,
+    gcSkew, atSkew,
+    totalCDSbp, avgCDSLen, minCDSLen, maxCDSLen,
+    shortestCDS, longestCDS, codingDensity,
+    plusStrand, minusStrand, tsPlusSpans, tsMinusSpans,
+    intergenicGaps, totalIntergenic, largestIntergenic, avgIntergenic,
+    presentTRNA, missingTRNA, trnaCounts,
+    presentRRNA,
+    startCodons, stopCodons, abbreviatedStopCount,
+    codonUsage, cdsGC,
+    duplicateCoords,
+  };
+}
+
+function renderStatsTab(stats, seqId) {
+  const pct  = v => v.toFixed(1) + '%';
+  const num  = v => v.toLocaleString();
+  const skew = v => (v >= 0 ? '+' : '') + v.toFixed(3);
+  const bar  = (v, max, color) => {
+    const w = max > 0 ? Math.min(100, (v / max) * 100) : 0;
+    return `<div style="height:6px;background:var(--border2);border-radius:3px;margin-top:4px;overflow:hidden">
+      <div style="height:100%;width:${w.toFixed(1)}%;background:${color};border-radius:3px;transition:width .8s ease"></div>
+    </div>`;
+  };
+
+  const summaryCards = [
+    { label:'Sequence length', value: stats.seqAvailable ? num(stats.seqLen)+' bp' : '~'+num(stats.seqLen)+' bp*', note: stats.seqAvailable ? '' : '*estimated from coords', color:'var(--accent2)' },
+    { label:'GC content',      value: stats.seqAvailable ? pct(stats.gcPct) : 'â€”',   note: `AT: ${stats.seqAvailable?pct(stats.atPct):'â€”'}`, color: stats.gcPct > 50 ? 'var(--warn)' : 'var(--info)' },
+    { label:'GC skew',         value: stats.seqAvailable ? skew(stats.gcSkew) : 'â€”', note:'(Gâˆ’C)/(G+C)', color:'var(--accent)' },
+    { label:'AT skew',         value: stats.seqAvailable ? skew(stats.atSkew) : 'â€”', note:'(Aâˆ’T)/(A+T)', color:'var(--accent)' },
+    { label:'Genes',           value: num(stats.geneCount), note:`${stats.cdsCount} CDS Â· ${stats.trnaCount} tRNA Â· ${stats.rrnaCount} rRNA`, color:'var(--accent2)' },
+    { label:'Coding density',  value: stats.seqAvailable ? pct(stats.codingDensity) : 'â€”', note:`${num(stats.totalCDSbp)} bp in CDS`, color:'var(--info)' },
+    { label:'Trans-spliced',   value: String(stats.tsCount), note:'CDS with mixed-strand exons', color:'var(--accent2)' },
+    { label:'Partial features',value: String(stats.partial5Count + stats.partial3Count), note:`5â€²: ${stats.partial5Count} Â· 3â€²: ${stats.partial3Count}`, color:'var(--warn)' },
+  ];
+
+  let html = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:24px">
+    ${summaryCards.map(c => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px">
+        <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">${c.label}</div>
+        <div style="font-size:1.4rem;font-weight:700;font-family:var(--mono);color:${c.color}">${c.value}</div>
+        ${c.note ? `<div style="font-size:.65rem;color:var(--muted);margin-top:3px">${c.note}</div>` : ''}
+      </div>`).join('')}
+  </div>`;
+
+  html += `<div class="stats-grid-2">`;
+
+  html += `<div>
+    <div class="stats-section-title">CDS Metrics</div>
+    <table style="width:100%;font-size:.75rem;border-collapse:collapse">
+      ${[
+        ['Count',          `${stats.cdsCount}`,                              ''],
+        ['Total length',   `${num(stats.totalCDSbp)} bp`,                    ''],
+        ['Average length', `${num(stats.avgCDSLen)} bp`,                     ''],
+        ['Shortest',       `${num(stats.minCDSLen)} bp`,                     stats.shortestCDS ? `(${escHtml(stats.shortestCDS.geneName||'?')})` : ''],
+        ['Longest',        `${num(stats.maxCDSLen)} bp`,                     stats.longestCDS  ? `(${escHtml(stats.longestCDS.geneName||'?')})` : ''],
+        ['+ strand',       `${stats.plusStrand}`,                            `(${stats.cdsCount>0?Math.round(stats.plusStrand/stats.cdsCount*100):0}%)`],
+        ['âˆ’ strand',       `${stats.minusStrand}`,                           `(${stats.cdsCount>0?Math.round(stats.minusStrand/stats.cdsCount*100):0}%)`],
+        ['Trans-spliced',  `${stats.tsCount}`,                               stats.tsCount > 0 ? `(+${stats.tsPlusSpans}/âˆ’${stats.tsMinusSpans} exons)` : ''],
+        ['Abbreviated stop',`${stats.abbreviatedStopCount}`,                 'ends with T (poly-A completes)'],
+        ['Partial 5â€²',     `${stats.partial5Count}`,                         ''],
+        ['Partial 3â€²',     `${stats.partial3Count}`,                         ''],
+      ].map(([k,v,n]) => `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:6px 10px;color:var(--muted)">${k}</td>
+        <td style="padding:6px 10px;font-family:var(--mono);font-weight:600">${v}</td>
+        <td style="padding:6px 10px;color:var(--muted);font-size:.65rem">${n}</td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+
+  const tRNApctOk = STANDARD_TRNA_PRODUCTS.size > 0
+    ? Math.round((STANDARD_TRNA_PRODUCTS.size - stats.missingTRNA.length) / STANDARD_TRNA_PRODUCTS.size * 100)
+    : 100;
+
+  html += `<div>
+    <div class="stats-section-title">RNA & Intergenic</div>
+    <table style="width:100%;font-size:.75rem;border-collapse:collapse">
+      ${[
+        ['tRNA count',       `${stats.trnaCount}`,           `${tRNApctOk}% of standard set`],
+        ['rRNA count',       `${stats.rrnaCount}`,           ''],
+        ['Missing tRNAs',    `${stats.missingTRNA.length}`,  stats.missingTRNA.length > 0 ? stats.missingTRNA.map(t=>t.replace('tRNA-','')).join(', ') : 'none'],
+        ['Intergenic gaps',  `${stats.intergenicGaps.length}`, ''],
+        ['Total intergenic', `${num(stats.totalIntergenic)} bp`, stats.seqLen > 0 ? `(${pct(stats.totalIntergenic/stats.seqLen*100)} of genome)` : ''],
+        ['Avg intergenic',   `${num(stats.avgIntergenic)} bp`,   ''],
+        ['Largest gap',      stats.largestIntergenic ? `${num(stats.largestIntergenic.size)} bp` : 'â€”',
+                             stats.largestIntergenic
+                               ? `after ${escHtml(stats.largestIntergenic.after?.geneName||'?')}`
+                               : ''],
+        ['Duplicate coords', `${stats.duplicateCoords.length}`,
+                             stats.duplicateCoords.length > 0 ? 'âš  check features tab' : 'none'],
+      ].map(([k,v,n]) => `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:6px 10px;color:var(--muted)">${k}</td>
+        <td style="padding:6px 10px;font-family:var(--mono);font-weight:600">${v}</td>
+        <td style="padding:6px 10px;color:var(--muted);font-size:.65rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n}">${n}</td>
+      </tr>`).join('')}
+    </table>
+  </div>`;
+
+  html += `</div>`;
+
+  if (stats.seqAvailable && Object.keys(stats.startCodons).length > 0) {
+    const totalStarts = Object.values(stats.startCodons).reduce((a,b)=>a+b,0);
+    const totalStops  = Object.values(stats.stopCodons).reduce((a,b)=>a+b,0);
+
+    html += `<div class="stats-grid-2">
+      <div>
+        <div class="stats-section-title">Start Codon Usage</div>
+        ${Object.entries(stats.startCodons).sort((a,b)=>b[1]-a[1]).map(([codon, count]) => {
+          const isATG = codon === 'ATG';
+          return `<div style="margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;font-size:.75rem;font-family:var(--mono)">
+              <span style="color:${isATG?'var(--info)':'var(--warn)'}">${codon}</span>
+              <span style="color:var(--muted)">${count} (${pct(count/totalStarts*100)})</span>
+            </div>
+            ${bar(count, totalStarts, isATG ? 'var(--info)' : 'var(--warn)')}
+          </div>`;
+        }).join('')}
+      </div>
+      <div>
+        <div class="stats-section-title">Stop Codon Usage</div>
+        ${Object.entries(stats.stopCodons).sort((a,b)=>b[1]-a[1]).map(([codon, count]) => {
+          const color = codon === 'none' ? 'var(--crit)' : codon === 'T(abbrev)' ? 'var(--accent2)' : 'var(--info)';
+          return `<div style="margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;font-size:.75rem;font-family:var(--mono)">
+              <span style="color:${color}">${codon}</span>
+              <span style="color:var(--muted)">${count} (${pct(count/totalStops*100)})</span>
+            </div>
+            ${bar(count, totalStops, color)}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  if (stats.trnaCount > 0) {
+    html += `<div style="margin-bottom:24px">
+      <div class="stats-section-title">
+        tRNA Completeness <span style="color:${stats.missingTRNA.length===0?'var(--info)':'var(--warn)'};">${STANDARD_TRNA_PRODUCTS.size - stats.missingTRNA.length}/${STANDARD_TRNA_PRODUCTS.size}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${[...STANDARD_TRNA_PRODUCTS].sort().map(t => {
+          const aa = t.replace('tRNA-','');
+          const present = stats.presentTRNA.has(t);
+          const count = stats.trnaCounts[aa] || 0;
+          return `<div style="
+            padding:5px 10px;border-radius:5px;font-family:var(--mono);font-size:.72rem;font-weight:600;
+            background:${present ? 'rgba(46,213,115,.12)' : 'rgba(255,71,87,.08)'};
+            border:1px solid ${present ? 'rgba(46,213,115,.3)' : 'rgba(255,71,87,.25)'};
+            color:${present ? 'var(--info)' : 'var(--crit)'};
+          " title="${present ? `${count} copy${count!==1?'ies':''}` : 'MISSING'}">
+            ${aa}${count > 1 ? `<sup style="font-size:.6rem">Ã—${count}</sup>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+      ${stats.missingTRNA.length > 0 ? `<div style="margin-top:8px;font-size:.72rem;color:var(--crit)">
+        Missing: ${stats.missingTRNA.map(t=>t.replace('tRNA-','')).join(', ')}
+      </div>` : `<div style="margin-top:6px;font-size:.72rem;color:var(--info)">âœ“ Complete standard tRNA set</div>`}
+    </div>`;
+  }
+
+  if (stats.cdsGC.length > 0) {
+    const gcVals = stats.cdsGC.map(c => c.gc);
+    const avgGC = gcVals.reduce((a,b)=>a+b,0) / gcVals.length;
+    html += `<div style="margin-bottom:24px">
+      <div class="stats-section-title">
+        CDS GC% Content <span style="color:var(--muted);font-weight:400">(avg: ${avgGC.toFixed(1)}%)</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;padding-right:4px">
+        ${stats.cdsGC.sort((a,b)=>b.gc-a.gc).map(c => {
+          const deviation = Math.abs(c.gc - avgGC);
+          const color = deviation > 10 ? 'var(--warn)' : deviation > 20 ? 'var(--crit)' : 'var(--accent)';
+          return `<div style="display:flex;align-items:center;gap:8px;font-size:.7rem">
+            <div style="width:80px;text-align:right;font-family:var(--mono);color:var(--muted);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(c.name)}">${escHtml(c.name)}</div>
+            <div style="flex:1;height:12px;background:var(--border2);border-radius:3px;overflow:hidden;position:relative">
+              <div style="height:100%;width:${c.gc.toFixed(1)}%;background:${color};border-radius:3px;transition:width .6s ease"></div>
+              <div style="position:absolute;top:0;left:${avgGC.toFixed(1)}%;height:100%;width:1px;background:rgba(255,255,255,.3)"></div>
+            </div>
+            <div style="width:40px;font-family:var(--mono);color:${color};flex-shrink:0">${c.gc.toFixed(1)}%</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="margin-top:6px;font-size:.65rem;color:var(--muted)">Vertical line = genome average GC (${avgGC.toFixed(1)}%). Bars deviating >10% may indicate horizontal gene transfer.</div>
+    </div>`;
+  }
+
+  if (Object.keys(stats.codonUsage).length > 0) {
+    html += `<div style="margin-bottom:16px">
+      <div class="stats-section-title">Codon Usage (RSCU-style, by amino acid)</div>
+      <div style="font-size:.65rem;color:var(--muted);margin-bottom:8px">Each row = one amino acid. Bar length = relative usage (darker = more used). Hover for count.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-family:var(--mono);font-size:.7rem">
+        ${Object.entries(stats.codonUsage).sort(([a],[b])=>a.localeCompare(b)).map(([aa, codons]) => {
+          const total = Object.values(codons).reduce((a,b)=>a+b,0);
+          const maxCount = Math.max(...Object.values(codons));
+          return `<div style="display:flex;gap:6px;align-items:center">
+            <div style="width:16px;text-align:right;color:var(--muted);flex-shrink:0;font-weight:700">${aa}</div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap">
+              ${Object.entries(codons).sort((a,b)=>b[1]-a[1]).map(([codon,count]) => {
+                const intensity = maxCount > 0 ? count / maxCount : 0;
+                const alpha = (0.15 + intensity * 0.7).toFixed(2);
+                return `<div style="padding:2px 5px;background:rgba(0,212,170,${alpha});border-radius:3px;cursor:default" title="${codon}: ${count} (${pct(count/total*100)})">${codon}</div>`;
+              }).join('')}
+            </div>
+            <div style="color:var(--muted);font-size:.65rem">${total}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  html += `<div style="margin-top:8px;display:flex;gap:8px">
+    <button class="btn btn-secondary" style="font-size:.75rem;padding:7px 14px" onclick="exportStatsTSV()">ðŸ“Š Export Stats TSV</button>
+    <button class="btn btn-secondary" style="font-size:.75rem;padding:7px 14px" onclick="copyStatsSummary()">ðŸ“‹ Copy Summary</button>
+  </div>`;
+
+  return html;
+}
+
+function exportStatsTSV() {
+  if (!_lastStats) return;
+  const s = _lastStats;
+  const lines = [
+    ['Metric', 'Value'],
+    ['Sequence ID', _lastSeqId],
+    ['Sequence length (bp)', s.seqLen],
+    ['GC%', s.seqAvailable ? s.gcPct.toFixed(2) : 'N/A'],
+    ['AT%', s.seqAvailable ? s.atPct.toFixed(2) : 'N/A'],
+    ['GC skew', s.seqAvailable ? s.gcSkew.toFixed(4) : 'N/A'],
+    ['AT skew', s.seqAvailable ? s.atSkew.toFixed(4) : 'N/A'],
+    ['Gene count', s.geneCount],
+    ['CDS count', s.cdsCount],
+    ['tRNA count', s.trnaCount],
+    ['rRNA count', s.rrnaCount],
+    ['Trans-spliced CDS', s.tsCount],
+    ['Total CDS bp', s.totalCDSbp],
+    ['Average CDS length (bp)', s.avgCDSLen],
+    ['Shortest CDS (bp)', s.minCDSLen],
+    ['Longest CDS (bp)', s.maxCDSLen],
+    ['Coding density %', s.seqLen > 0 ? s.codingDensity.toFixed(2) : 'N/A'],
+    ['CDS on + strand', s.plusStrand],
+    ['CDS on âˆ’ strand', s.minusStrand],
+    ['Partial 5â€² features', s.partial5Count],
+    ['Partial 3â€² features', s.partial3Count],
+    ['Intergenic gaps', s.intergenicGaps.length],
+    ['Total intergenic bp', s.totalIntergenic],
+    ['Average intergenic (bp)', s.avgIntergenic],
+    ['Largest intergenic (bp)', s.largestIntergenic?.size || 0],
+    ['Missing standard tRNAs', s.missingTRNA.length],
+    ['Missing tRNA list', s.missingTRNA.map(t=>t.replace('tRNA-','')).join('; ')],
+    [],
+    ['--- Start codons ---'],
+    ...Object.entries(s.startCodons).sort((a,b)=>b[1]-a[1]).map(([c,n]) => [c, n]),
+    [],
+    ['--- Stop codons ---'],
+    ...Object.entries(s.stopCodons).sort((a,b)=>b[1]-a[1]).map(([c,n]) => [c, n]),
+  ];
+  const tsv = lines.map(r => r.join('\t')).join('\n');
+  const blob = new Blob([tsv], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (_lastSeqId || 'annotation') + '_stats.tsv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function copyStatsSummary() {
+  if (!_lastStats) return;
+  const s = _lastStats;
+  const lines = [
+    `GenBank TBL Annotation Summary â€” ${_lastSeqId}`,
+    `${'â”€'.repeat(50)}`,
+    `Sequence length : ${s.seqLen.toLocaleString()} bp`,
+    `GC content      : ${s.seqAvailable ? s.gcPct.toFixed(1)+'%' : 'N/A (no FASTA)'}`,
+    `GC skew         : ${s.seqAvailable ? s.gcSkew.toFixed(3) : 'N/A'}`,
+    `AT skew         : ${s.seqAvailable ? s.atSkew.toFixed(3) : 'N/A'}`,
+    `${'â”€'.repeat(50)}`,
+    `Genes           : ${s.geneCount}`,
+    `CDS             : ${s.cdsCount}  (${s.plusStrand}+/${s.minusStrand}âˆ’)`,
+    `tRNA            : ${s.trnaCount}`,
+    `rRNA            : ${s.rrnaCount}`,
+    `Trans-spliced   : ${s.tsCount}`,
+    `Partial         : ${s.partial5Count} 5â€² / ${s.partial3Count} 3â€²`,
+    `${'â”€'.repeat(50)}`,
+    `Coding density  : ${s.seqLen > 0 ? s.codingDensity.toFixed(1)+'%' : 'N/A'}`,
+    `Avg CDS length  : ${s.avgCDSLen.toLocaleString()} bp`,
+    `Total CDS       : ${s.totalCDSbp.toLocaleString()} bp`,
+    `${'â”€'.repeat(50)}`,
+    `tRNA complete   : ${STANDARD_TRNA_PRODUCTS.size - s.missingTRNA.length}/${STANDARD_TRNA_PRODUCTS.size}`,
+    s.missingTRNA.length > 0
+      ? `Missing tRNAs   : ${s.missingTRNA.map(t=>t.replace('tRNA-','')).join(', ')}`
+      : `Missing tRNAs   : none`,
+    `Intergenic gaps : ${s.intergenicGaps.length} (total ${s.totalIntergenic.toLocaleString()} bp)`,
+    `Generated by GenBank TBL Validator v2.5`,
+  ];
+  navigator.clipboard?.writeText(lines.join('\n')).then(() => {
+    const btn = event.target;
+    btn.textContent = 'âœ… Copied!';
+    setTimeout(() => btn.textContent = 'ðŸ“‹ Copy Summary', 1500);
+  });
+}
+
+
 async function showCodons(featureIndex) {
-  if (!GENETIC_CODES || Object.keys(GENETIC_CODES).length === 0) {
+  if (!GENETIC_CODES) {
     document.getElementById('codonContent').innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner"></div><p style="margin-top:12px;color:var(--muted)">Loading genetic codes...</p></div>';
     document.getElementById('codonModal').style.display = 'block';
     await loadGeneticCodes();
-    if (!GENETIC_CODES || Object.keys(GENETIC_CODES).length === 0) {
-      document.getElementById('codonContent').innerHTML = '<div style="color:var(--crit);text-align:center;padding:20px">❌ Failed to load genetic codes</div>';
+    if (!GENETIC_CODES) {
+      document.getElementById('codonContent').innerHTML = '<div style="color:var(--crit);text-align:center;padding:40px">âŒ <b>genetic_codes.json not found</b><br><small style="color:var(--muted)">This file is required for codon translation.<br>Place it in the same directory as this HTML file and run with a local server.</small></div>';
       return;
     }
   }
   
   const f = _lastFeatures[featureIndex];
-  if (!f || f.type !== 'CDS') { alert('Not a CDS feature'); return; }
-  
+  if (!f || f.type !== 'CDS') return;
+
   const seq = extractCDSSequence(f, _lastSeqId);
   if (!seq) { alert('FASTA sequence not available.'); return; }
-  
-  const tid = f.qualifiers['transl_table']?.[0] ? parseInt(f.qualifiers['transl_table'][0]) : null;
-  if (!tid) { alert('This CDS has no transl_table qualifier.'); return; }
-  
-  const code = getGeneticCodeById(tid);
-  if (!code) { alert(`Unknown genetic code table ${tid}.`); return; }
-  
+
+  const code = resolveGeneticCode(f);
+  if (!code) {
+    alert('Cannot determine genetic code. Ensure genetic_codes.json is loaded and the CDS has a transl_table qualifier or an organism is selected.');
+    return;
+  }
+
   const cs = parseInt(f.qualifiers['codon_start']?.[0] || '1');
   const adj = seq.slice(cs - 1);
-  
+  const ts = isTransSplicedFeature(f);
+  const hasAbbreviatedStopVis = !f.partial3 && adj.length % 3 === 1 && adj[adj.length - 1] === 'T';
+
   let html = `<div style="font-family:var(--mono);font-size:.8rem;margin-bottom:16px;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
     <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px">
-      <span style="color:var(--muted)">Gene:</span><b>${escHtml(f.geneName || '—')}</b>
-      <span style="color:var(--muted)">Product:</span><b>${escHtml(f.productName || '—')}</b>
+      <span style="color:var(--muted)">Gene:</span><b>${escHtml(f.geneName||'â€”')}</b>
+      <span style="color:var(--muted)">Product:</span><b>${escHtml(f.productName||'â€”')}</b>
       <span style="color:var(--muted)">Genetic code:</span><b>${code.name} (table ${code.id})</b>
       <span style="color:var(--muted)">Codon start:</span><b>${cs}</b>
-      <span style="color:var(--muted)">CDS length:</span><b>${adj.length} bp (${Math.floor(adj.length/3)} amino acids)</b>
+      <span style="color:var(--muted)">CDS length:</span><b>${adj.length} bp (${Math.floor(adj.length/3)} aa)</b>
+      ${ts ? `<span style="color:var(--muted)">Trans-spliced:</span><b style="color:var(--accent2)">Yes (${f.spans.length} exons)</b>` : ''}
     </div>
   </div>`;
-  
+
   html += `<div class="codon-grid">`;
-  
   const proteinSeq = [];
-  let internalStops = 0;
-  let unknownCodons = 0;
-  
-  for (let i = 0, aa = 1; i + 2 < adj.length; i += 3, aa++) {
-    const codon = adj.substr(i, 3);
-    const aaChar = code.table[codon] || 'X';
+  let internalStops = 0, unknownCodons = 0;
+  const effectiveAdj = hasAbbreviatedStopVis ? adj.slice(0, -1) : adj;
+
+  for (let i = 0, aa = 1; i + 2 < effectiveAdj.length; i += 3, aa++) {
+    const codon = effectiveAdj.substr(i, 3);
+    const aaChar = code.aa[codon] || 'X';
     proteinSeq.push(aaChar);
-    
-    if (aaChar === '*' && aa < Math.floor(adj.length/3)) internalStops++;
+    if (aaChar === '*' && i + 2 < effectiveAdj.length - 3) internalStops++;
     if (aaChar === 'X') unknownCodons++;
-    
-    let cellClass = '';
-    let bgColor = '';
-    
-    if (aa === 1) { cellClass = 'codon-start'; }
-    else if (aaChar === '*') { cellClass = 'codon-stop'; }
-    else if (aaChar === 'X') { cellClass = 'codon-unknown'; }
-    else { bgColor = 'background:rgba(255,255,255,.05)'; }
-    
-    html += `<div class="codon-cell ${cellClass}" style="${bgColor}">
+    let cc = '', bg = '';
+    if (aa === 1) cc = 'codon-start';
+    else if (aaChar === '*') cc = 'codon-stop';
+    else if (aaChar === 'X') cc = 'codon-unknown';
+    else bg = 'background:rgba(255,255,255,.05)';
+    html += `<div class="codon-cell ${cc}" style="${bg}">
       <div class="codon-aa-num">AA ${aa}</div>
       <div class="codon-triplet">${codon}</div>
-      <div class="codon-aa" style="color:${aaChar==='*'?'var(--crit)':aaChar==='X'?'var(--warn)':'var(--accent)'}">→ ${aaChar}</div>
+      <div class="codon-aa" style="color:${aaChar==='*'?'var(--crit)':aaChar==='X'?'var(--warn)':'var(--accent)'}">â†’ ${aaChar}</div>
     </div>`;
   }
-  
+  if (hasAbbreviatedStopVis) {
+    proteinSeq.push('*');
+    html += `<div class="codon-cell codon-stop"><div class="codon-aa-num">AA ${proteinSeq.length}</div><div class="codon-triplet">T..</div><div class="codon-aa" style="color:var(--crit)">â†’ *</div></div>`;
+  }
   html += `</div>`;
-  
-  html += `<div style="margin-top:12px;font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-bottom:4px;"><b>Protein translation (${proteinSeq.length} aa):</b></div>`;
-  
-  html += `<div class="translation-bar">`;
+
+  html += `<div style="margin-top:12px;font-size:.7rem;margin-bottom:4px;"><b>Translation (${proteinSeq.length} aa):</b></div><div class="translation-bar">`;
   for (let i = 0; i < proteinSeq.length; i++) {
     const aa = proteinSeq[i];
-    let aaBg = 'rgba(255,255,255,.05)';
-    let aaColor = 'var(--text)';
-    if (i === 0) { aaBg = 'rgba(46,213,115,.2)'; aaColor = 'var(--info)'; }
-    else if (aa === '*') { aaBg = 'rgba(255,71,87,.2)'; aaColor = 'var(--crit)'; }
-    else if (aa === 'X') { aaBg = 'rgba(255,165,2,.15)'; aaColor = 'var(--warn)'; }
-    html += `<span class="aa-char" style="background:${aaBg};color:${aaColor}">${aa}</span>`;
+    let ab = 'rgba(255,255,255,.05)', ac = 'var(--text)';
+    if (i === 0) { ab = 'rgba(46,213,115,.2)'; ac = 'var(--info)'; }
+    else if (aa === '*') { ab = 'rgba(255,71,87,.2)'; ac = 'var(--crit)'; }
+    else if (aa === 'X') { ab = 'rgba(255,165,2,.15)'; ac = 'var(--warn)'; }
+    html += `<span class="aa-char" style="background:${ab};color:${ac}">${aa}</span>`;
   }
   html += `</div>`;
-  
+
   const warnings = [];
-  if (internalStops > 0) warnings.push(`⚠️ <b style="color:var(--crit)">${internalStops} internal stop codon${internalStops>1?'s':''} detected!</b> Possible pseudogene, sequencing error, or wrong genetic code.`);
-  if (unknownCodons > 0) warnings.push(`⚠️ <b style="color:var(--warn)">${unknownCodons} unknown codon${unknownCodons>1?'s':''} (X)</b> — check sequence quality or genetic code table completeness.`);
-  if (proteinSeq.length > 0 && proteinSeq[proteinSeq.length-1] !== '*') warnings.push(`⚠️ <b style="color:var(--warn)">No terminal stop codon</b> — CDS may be partial at 3' end or There is T.`);
-  
-  if (warnings.length > 0) {
-    html += `<div style="margin-top:12px;padding:12px;background:rgba(255,71,87,.05);border:1px solid rgba(255,71,87,.2);border-radius:8px;font-size:.8rem;line-height:1.8">${warnings.join('<br>')}</div>`;
+  if (internalStops > 0) warnings.push(`âš ï¸ <b style="color:var(--crit)">${internalStops} internal stop${internalStops>1?'s':''}!</b>`);
+  if (unknownCodons > 0) warnings.push(`âš ï¸ <b style="color:var(--warn)">${unknownCodons} unknown codon${unknownCodons>1?'s':''} (X)</b>`);
+  if (hasAbbreviatedStopVis) {
+    warnings.push(`â„¹ï¸ <b style="color:var(--info)">Abbreviated stop codon detected</b> (single T â€” TAA completed by poly-A tail).`);
+  } else if (proteinSeq.length > 0 && proteinSeq[proteinSeq.length-1] !== '*') {
+    warnings.push(`âš ï¸ <b style="color:var(--warn)">No terminal stop codon</b>`);
   }
-  
-  html += `<div style="margin-top:16px;display:flex;gap:16px;flex-wrap:wrap;font-size:.7rem;font-family:var(--mono)">
-    <span>🟢 <span style="color:var(--info)">Start codon</span></span>
-    <span>🔴 <span style="color:var(--crit)">Stop codon</span></span>
-    <span>🟡 <span style="color:var(--warn)">Unknown codon</span></span>
-  </div>`;
-  
+  if (ts) {
+    const exonRows = f.spans.map((s,i) => {
+      const len = s.high - s.low + 1;
+      const coord = s.strand === '-' ? `c${s.start}â€“${s.end}` : `${s.start}â€“${s.end}`;
+      return `<div style="font-family:var(--mono);font-size:.7rem;padding:2px 0">Exon ${i+1}: <b>${coord}</b> (${len} bp, ${s.strand === '-' ? 'âˆ’ strand' : '+ strand'})</div>`;
+    }).join('');
+    warnings.push(`â„¹ï¸ <b style="color:var(--accent2)">Trans-spliced gene</b> â€” ${f.spans.length} exons concatenated for translation:<br>${exonRows}`);
+  }
+  if (warnings.length > 0)
+    html += `<div style="margin-top:12px;padding:12px;background:rgba(255,71,87,.05);border:1px solid rgba(255,71,87,.2);border-radius:8px;font-size:.8rem;line-height:1.8">${warnings.join('<br>')}</div>`;
+
   document.getElementById('codonContent').innerHTML = html;
   document.getElementById('codonModal').style.display = 'block';
   document.addEventListener('keydown', handleCodonModalEscape);
 }
 
-function closeCodonModal() {
-  document.getElementById('codonModal').style.display = 'none';
-  document.removeEventListener('keydown', handleCodonModalEscape);
+function closeCodonModal() { document.getElementById('codonModal').style.display='none'; document.removeEventListener('keydown',handleCodonModalEscape); }
+function handleCodonModalEscape(e) { if (e.key==='Escape') closeCodonModal(); }
+document.getElementById('codonModal').addEventListener('click', function(e) { if (e.target===this) closeCodonModal(); });
+
+function computeReferenceComparison(userFeatures, refFeatures, seqId) {
+  const rows = [];
+  const userByName = {};
+  for (const f of userFeatures) { const key = norm(f.geneName); if (key) { if (!userByName[key]) userByName[key] = []; userByName[key].push(f); } }
+  const refByName = {};
+  for (const f of refFeatures) { const key = norm(f.geneName); if (key) { if (!refByName[key]) refByName[key] = []; refByName[key].push(f); } }
+
+  const allGeneNames = new Set([...Object.keys(userByName), ...Object.keys(refByName)]);
+  for (const geneName of allGeneNames) {
+    const userFeats = userByName[geneName] || [], refFeats = refByName[geneName] || [];
+    const inUser = userFeats.length > 0, inRef = refFeats.length > 0;
+    if (!inUser && !inRef) continue;
+
+    const userCds = userFeats.find(f=>f.type==='CDS') || userFeats[0];
+    const refCds  = refFeats.find(f=>f.type==='CDS')  || refFeats[0];
+    const userCDSLen = userCds ? flen(userCds) : 0, refCDSLen = refCds ? flen(refCds) : 0;
+    const cdsLenDiff = Math.abs(userCDSLen - refCDSLen);
+    const cdsLenPct  = refCDSLen > 0 ? (cdsLenDiff / refCDSLen) * 100 : 0;
+    let cdsLenStatus = cdsLenPct > 15 ? 'crit' : cdsLenPct > 5 ? 'warn' : 'ok';
+
+    let userProteinLen = null;
+    if (_fastaLoaded && userCds && userCds.type==='CDS') { const seq = extractCDSSequence(userCds, seqId); if (seq) { userProteinLen = Math.floor(seq.slice(parseInt(userCds.qualifiers['codon_start']?.[0]||'1')-1).length/3); } }
+    const refProteinLen = refCds ? refCds.proteinLength : null;
+    let proteinLenDiff = null, proteinLenStatus = 'na';
+    if (userProteinLen !== null && refProteinLen !== null) { proteinLenDiff = Math.abs(userProteinLen-refProteinLen); const pct = refProteinLen>0?(proteinLenDiff/refProteinLen)*100:0; proteinLenStatus = pct>15?'crit':pct>5?'warn':'ok'; }
+
+    const userSpans = userCds ? userCds.spans.length : 0, refSpans = refCds ? refCds.spans.length : 0;
+    const gn = norm(geneName);
+    const isTS = isTransSplicedFeature(userCds||{geneName,spans:[],qualifiers:{}}) || isTransSplicedFeature(refCds||{geneName,spans:[],qualifiers:{}});
+    const spansMatch = userSpans === refSpans;
+    const spansStatus = spansMatch ? 'ok' : (isTS ? 'info' : 'warn');
+    const userStrand = userCds ? userCds.spans[0]?.strand||'+' : '+', refStrand = refCds ? refCds.spans[0]?.strand||'+' : '+';
+    const userTranslTable = userCds ? (parseInt(userCds.qualifiers['transl_table']?.[0])||null) : null;
+    const refTranslTable  = refCds  ? refCds.translTable : null;
+    const translTableMatch = (refTranslTable===null) ? true : (userTranslTable===refTranslTable);
+
+    let userStartCodon = null;
+    if (_fastaLoaded && userCds && userCds.type==='CDS') { const seq=extractCDSSequence(userCds,seqId); if (seq&&seq.length>=3) userStartCodon=seq.substr(0,3); }
+
+    let overallStatus = 'ok';
+    if (!inUser) overallStatus = 'missing';
+    else if (!inRef) overallStatus = 'extra';
+    else if (cdsLenStatus==='crit'||proteinLenStatus==='crit') overallStatus = 'crit';
+    else if (cdsLenStatus==='warn'||proteinLenStatus==='warn'||(!spansMatch&&!isTS)) overallStatus = 'warn';
+
+    rows.push({ geneName,inUser,inRef,userCDSLen,refCDSLen,cdsLenDiff,cdsLenPct,cdsLenStatus,userProteinLen,refProteinLen,proteinLenDiff,proteinLenStatus,userSpans,refSpans,spansMatch,spansStatus,isTransSpliced:isTS,userStrand,refStrand,strandMatch:userStrand===refStrand,userTranslTable,refTranslTable,translTableMatch,userStartCodon,overallStatus,userCds,refCds,userFeats,refFeats });
+  }
+  return rows.sort((a,b)=>{const o={'crit':0,'warn':1,'missing':2,'extra':3,'ok':4};return(o[a.overallStatus]||5)-(o[b.overallStatus]||5);});
 }
 
-function handleCodonModalEscape(e) {
-  if (e.key === 'Escape') closeCodonModal();
+function renderRefCompareTab(comparison, refData) {
+  if (!comparison.length) return '<div class="empty-state"><div class="empty-icon">ðŸ“­</div>No genes found for comparison.</div>';
+  const matched=comparison.filter(r=>r.inUser&&r.inRef).length,onlyUser=comparison.filter(r=>r.inUser&&!r.inRef).length,onlyRef=comparison.filter(r=>!r.inUser&&r.inRef).length,withinTol=comparison.filter(r=>r.overallStatus==='ok').length,tolPct=comparison.length>0?Math.round(withinTol/comparison.length*100):0;
+
+  let html=`<div class="ref-info-bar">Reference: <b>${escHtml(refData.seqId)}</b> Â· ${escHtml(refData.organism)} Â· ${refData.length.toLocaleString()} bp Â· ${refData.features.length} features</div>
+  <div class="ref-summary-strip">
+    <div class="ref-summary-card"><div class="ref-summary-value" style="color:var(--info)">${matched}</div><div class="ref-summary-label">Genes Matched</div></div>
+    <div class="ref-summary-card"><div class="ref-summary-value" style="color:var(--warn)">${onlyUser}</div><div class="ref-summary-label">Only in Annotation</div></div>
+    <div class="ref-summary-card"><div class="ref-summary-value" style="color:var(--crit)">${onlyRef}</div><div class="ref-summary-label">Only in Reference</div></div>
+    <div class="ref-summary-card"><div class="ref-summary-value" style="color:${tolPct>=80?'var(--info)':tolPct>=60?'var(--warn)':'var(--crit)'}">${tolPct}%</div><div class="ref-summary-label">Within Tolerance</div></div>
+  </div>
+  <div style="margin-bottom:8px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div class="filters" style="margin-bottom:0">
+      <div class="chip active" onclick="toggleCompFilter('all',this)">All</div>
+      <div class="chip comp-chip-ok" onclick="toggleCompFilter('ok',this)">âœ“ OK</div>
+      <div class="chip comp-chip-warn" onclick="toggleCompFilter('warn',this)">âš  Review</div>
+      <div class="chip comp-chip-crit" onclick="toggleCompFilter('crit',this)">âœ— Critical</div>
+      <div class="chip comp-chip-missing" onclick="toggleCompFilter('extra',this)">Â± User only</div>
+    </div>
+    <button class="btn btn-secondary" style="font-size:.72rem;padding:6px 12px" onclick="copyCompTSV()">ðŸ“‹ Copy TSV</button>
+  </div>
+  <div class="comp-table-wrap"><table class="comp-table"><thead><tr><th>Gene</th><th>CDS Length</th><th>Protein aa</th><th>Spans</th><th>Strand</th><th>Code</th><th>Start</th><th>Status</th></tr></thead><tbody>`;
+
+  for (const row of comparison) {
+    const rowId='compRow_'+row.geneName.replace(/[^a-z0-9]/gi,'_'),statusClass='comp-status-'+row.overallStatus,statusLabel={ok:'âœ“ OK',warn:'âš  Review',crit:'âœ— Critical',missing:'â€” Missing in ref',extra:'+ Only in annotation'}[row.overallStatus]||'?';
+    const cdsCell=row.inUser&&row.inRef?`${row.userCDSLen} <span class="comp-arrow">â†’</span> ${row.refCDSLen}`:(row.inUser?`${row.userCDSLen} <span class="comp-arrow">â†’</span> â€”`:`â€” <span class="comp-arrow">â†’</span> ${row.refCDSLen}`);
+    const protCell=row.userProteinLen!==null&&row.refProteinLen!==null?`${row.userProteinLen} <span class="comp-arrow">â†’</span> ${row.refProteinLen}`:(row.userProteinLen!==null?`${row.userProteinLen}`:(row.refProteinLen!==null?`â€” â†’ ${row.refProteinLen}`:'â€”'));
+    const spanCell=row.inUser&&row.inRef?`${row.userSpans} <span class="comp-arrow">â†’</span> ${row.refSpans}`:(row.inUser?`${row.userSpans}`:`${row.refSpans}`);
+    const strandCell=row.inUser&&row.inRef?(row.strandMatch?row.userStrand:`${row.userStrand} â†’ ${row.refStrand}`):(row.inUser?row.userStrand:row.refStrand);
+    const codeCell=row.inUser&&row.inRef?(row.translTableMatch?(row.userTranslTable||'â€”'):`${row.userTranslTable||'â€”'} â†’ ${row.refTranslTable||'â€”'}`):(row.inUser?(row.userTranslTable||'â€”'):(row.refTranslTable||'â€”'));
+
+    html+=`<tr class="expandable" onclick="toggleCompRow('${rowId}')">
+      <td style="color:var(--text)"><b>${row.geneName}</b>${row.isTransSpliced?' <span class="tag-ts">TS</span>':''}</td>
+      <td class="comp-cell-${row.cdsLenStatus}">${cdsCell}</td>
+      <td class="comp-cell-${row.proteinLenStatus==='na'?'ok':row.proteinLenStatus}">${protCell}</td>
+      <td class="comp-cell-${row.spansStatus}">${spanCell}</td>
+      <td>${strandCell}</td>
+      <td class="comp-cell-${row.translTableMatch?'ok':'crit'}">${codeCell}</td>
+      <td>${row.userStartCodon||'â€”'}</td>
+      <td><span class="${statusClass}">${statusLabel}</span></td>
+    </tr>
+    <tr class="comp-expanded-row" id="${rowId}"><td colspan="8">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><b>User:</b> ${row.inUser?featLabel(row.userCds||row.userFeats[0]):'â€”'}</div><div><b>Ref:</b> ${row.inRef?featLabel(row.refCds||row.refFeats[0]):'â€”'}</div>
+        ${row.userCds&&row.refCds?`<div><b>User spans:</b> ${row.userCds.spans.map(s=>s.strand==='-'?`c${s.start}-${s.end}`:`${s.start}-${s.end}`).join(', ')}</div><div><b>Ref spans:</b> ${row.refCds.spans.map(s=>s.strand==='-'?`c${s.start}-${s.end}`:`${s.start}-${s.end}`).join(', ')}</div>`:''}
+        <div><b>User product:</b> ${escHtml(row.userCds?.productName||'â€”')}</div><div><b>Ref product:</b> ${escHtml(row.refCds?.productName||'â€”')}${row.refCds?.note?`<br><b>Note:</b> ${escHtml(row.refCds.note)}`:''}</div>
+        ${row.isTransSpliced?`<div colspan="2" style="color:var(--accent2)"><b>Trans-spliced gene:</b> exon boundaries may differ between annotation styles.</div>`:''}
+      </div>
+      ${row.overallStatus==='crit'?`<div style="margin-top:8px;padding:8px;background:rgba(255,71,87,.1);border-radius:6px;font-size:.68rem;color:var(--crit)">
+        ${!row.translTableMatch&&row.refTranslTable!==null?`âš  Genetic code mismatch â€” you use code ${row.userTranslTable} but reference uses ${row.refTranslTable}. `:''}
+        ${row.cdsLenStatus==='crit'?`âš  CDS length differs by ${row.cdsLenPct.toFixed(1)}% (${row.cdsLenDiff} bp). `:''}
+        ${row.proteinLenStatus==='crit'?`âš  Protein length differs significantly (${row.proteinLenDiff} aa). `:''}
+      </div>`:''}
+    </td></tr>`;
+  }
+  html+=`</tbody></table></div>`;
+  return html;
 }
 
-document.getElementById('codonModal').addEventListener('click', function(e) {
-  if (e.target === this) closeCodonModal();
-});
+let _compFilter='all';
+function toggleCompFilter(type,el){_compFilter=type;document.querySelectorAll('.comp-chip-ok,.comp-chip-warn,.comp-chip-crit,.comp-chip-missing').forEach(c=>c.classList.remove('active'));const chip=document.querySelector('.comp-chip-'+type);if(chip)chip.classList.add('active');else document.querySelector('.filters .chip:first-child')?.classList.add('active');if(_lastComparison.length&&_refLoaded){document.getElementById('tab-refcompare-content').innerHTML=renderRefCompareTab(type==='all'?_lastComparison:_lastComparison.filter(r=>r.overallStatus===type),_refData);}}
+function toggleCompRow(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
+function copyCompTSV(){let tsv='Gene\tUser_CDS_bp\tRef_CDS_bp\tUser_Protein_aa\tRef_Protein_aa\tUser_Spans\tRef_Spans\tStrand_Match\tCode_Match\tStart_Codon\tTrans_Spliced\tStatus\n';for(const r of _lastComparison){tsv+=`${r.geneName}\t${r.userCDSLen||''}\t${r.refCDSLen||''}\t${r.userProteinLen||''}\t${r.refProteinLen||''}\t${r.userSpans||''}\t${r.refSpans||''}\t${r.strandMatch}\t${r.translTableMatch}\t${r.userStartCodon||''}\t${r.isTransSpliced||false}\t${r.overallStatus}\n`;}navigator.clipboard?.writeText(tsv).then(()=>{const btn=event.target;btn.textContent='âœ… Copied!';setTimeout(()=>btn.textContent='ðŸ“‹ Copy TSV',1500);});}
 
-// ── UI ─────────────────────────────────────────────────────────────────────────
-let _activeFilters = new Set(['CRITICAL','WARNING','INFO']);
-let _lastIssues = [], _lastFeatures = [], _lastSeqId = '';
-let _fastaSequences = {};
-let _fastaLoaded = false;
-
-const _origRunValidation = async function() {
-  const text = document.getElementById('pasteArea').value.trim();
-  if (!text) { alert('Please paste a feature table or load a file.'); return; }
-
-  const organism = document.getElementById('organism').value;
-  const btn = document.getElementById('validateBtn');
-  btn.disabled = true; btn.textContent = '⏳ Validating...';
-
-  await loadGeneticCodes();
-
-  setTimeout(() => {
-    try {
-      const tables = parseFeatureTable(text);
-      let allIssues = [], allFeatures = [];
-      let seqId = tables[0]?.seqId || '<unnamed>';
-
-      for (const t of tables) {
-        allIssues   = allIssues.concat(validate(t, organism));
-        allFeatures = allFeatures.concat(t.features);
-        if (tables.length>1) seqId = tables.map(t=>t.seqId).join(', ');
-      }
-
-      _lastIssues   = allIssues;
-      _lastFeatures = allFeatures;
-      _lastSeqId    = seqId;
-      _activeFilters = new Set(['CRITICAL','WARNING','INFO']);
-      renderResults(allIssues, allFeatures, seqId);
-    } catch(e) {
-      document.getElementById('results').innerHTML =
-        `<div style="color:var(--crit);padding:20px;font-family:var(--mono)">Parse error: ${e.message}</div>`;
+function computeScore(issues, features, organism, fastaLoaded, seqId) {
+  const cdss=features.filter(f=>f.type==='CDS'),trnas=features.filter(f=>f.type==='tRNA'),crits=issues.filter(i=>i.sev==='CRITICAL'),warns=issues.filter(i=>i.sev==='WARNING'),deductions=[];
+  const presentGenes=new Set(features.map(f=>norm(f.geneName)).filter(Boolean)),expected=EXPECTED_GENES[organism]||DEFAULT_EXPECTED,expectedArr=[...expected],presentCount=expectedArr.filter(g=>presentGenes.has(g)).length,geneRatio=expectedArr.length>0?presentCount/expectedArr.length:1;
+  let geneMax=_refLoaded?20:30,refConcordScore=0;
+  const geneScore=Math.round(geneRatio*geneMax);
+  if(geneScore<geneMax)deductions.push(`âˆ’${geneMax-geneScore} pts Â· ${expectedArr.length-presentCount} expected genes missing`);
+  let structScore=25;structScore-=crits.length*5;structScore-=warns.length*1;structScore=Math.max(0,structScore);
+  if(crits.length>0)deductions.push(`âˆ’${Math.min(25,crits.length*5)} pts Â· ${crits.length} critical error${crits.length>1?'s':''}`);
+  if(warns.length>0)deductions.push(`âˆ’${Math.min(25,warns.length)} pts Â· ${warns.length} warning${warns.length>1?'s':''}`);
+  let cdsPoolScore=0;const totalCdsPools=cdss.length*4;
+  if(cdss.length>0){for(const cds of cdss){if(cds.geneName)cdsPoolScore++;if(cds.productName)cdsPoolScore++;if(cds.qualifiers['transl_table'])cdsPoolScore++;const eff=flen(cds)-(parseInt(cds.qualifiers['codon_start']?.[0]||'1')-1);if(!cds.partial3&&(eff%3===0||eff%3===1))cdsPoolScore++;}var cdsScore=Math.round(totalCdsPools>0?(cdsPoolScore/totalCdsPools)*20:20);}else{var cdsScore=20;}
+  if(cdsScore<20)deductions.push(`âˆ’${20-cdsScore} pts Â· CDS annotations incomplete (${cdsPoolScore}/${totalCdsPools} checks passed)`);
+  let transScore=15;
+  if(fastaLoaded&&cdss.length>0){let transChecks=0,transPassed=0;
+    for(const cds of cdss){const seq=extractCDSSequence(cds,seqId);if(!seq)continue;const cs=parseInt(cds.qualifiers['codon_start']?.[0]||'1'),adj=seq.slice(cs-1);if(adj.length<3)continue;
+      const code=resolveGeneticCode(cds);if(!code)continue;
+      const startCodon=adj.substr(0,3),hasAbbreviatedStop=!cds.partial3&&adj.length%3===1&&adj[adj.length-1]==='T',adjForTranslation=hasAbbreviatedStop?adj.slice(0,-1):adj,finalCodon=adjForTranslation.substr(adjForTranslation.length-3,3);
+      transChecks+=3;
+      if(isValidStartCodon(startCodon,code))transPassed++;
+      if(isStopCodon(finalCodon,code)||hasAbbreviatedStop)transPassed++;
+      let hasInternalStop=false;
+      for(let i=3;i+2<adj.length-3;i+=3){if(isStopCodon(adj.substr(i,3),code)){hasInternalStop=true;break;}}
+      if(!hasInternalStop)transPassed++;
     }
-    btn.disabled = false; btn.textContent = '▶ Validate';
-  }, 50);
-};
-
-let runValidation = _origRunValidation;
-
-function renderResults(issues, features, seqId) {
-  const crits = issues.filter(i=>i.sev==='CRITICAL');
-  const warns  = issues.filter(i=>i.sev==='WARNING');
-  const infos  = issues.filter(i=>i.sev==='INFO');
-
-  const jsonData = {
-    sequence_id: seqId,
-    summary: { critical: crits.length, warnings: warns.length, info: infos.length },
-    errors: crits.map(i=>({code:i.code, message:i.msg})),
-    warnings: warns.map(i=>({code:i.code, message:i.msg})),
-    info: infos.map(i=>({code:i.code, message:i.msg})),
-    features: features.map(f=>({
-      type:f.type, gene:f.geneName, product:f.productName,
-      spans:f.spans.map(s=>s.strand==='-'?`c${s.start}-${s.end}`:`${s.start}-${s.end}`),
-      strand: f.spans[0]?.strand||'?'
-    }))
-  };
-
-  let html = `
-  <div class="summary-bar">
-    <div class="stat stat-crit" data-tip="Submission will fail">
-      <div class="stat-value">${crits.length}</div>
-      <div class="stat-label">Critical</div>
-    </div>
-    <div class="stat stat-warn" data-tip="Likely problematic">
-      <div class="stat-value">${warns.length}</div>
-      <div class="stat-label">Warnings</div>
-    </div>
-    <div class="stat stat-info" data-tip="Optional improvements">
-      <div class="stat-value">${infos.length}</div>
-      <div class="stat-label">Info</div>
-    </div>
-    <div class="stat stat-feat" data-tip="Total features parsed">
-      <div class="stat-value">${features.length}</div>
-      <div class="stat-label">Features</div>
-    </div>
-    ${_fastaLoaded ? `
-    <div class="stat" style="background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.3)" data-tip="FASTA loaded">
-      <div class="stat-value" style="color:var(--accent);font-size:1.5rem">✓</div>
-      <div class="stat-label" style="color:var(--accent)">FASTA</div>
-    </div>` : ''}
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('issues',this)">Issues (${issues.length})</div>
-    <div class="tab" onclick="switchTab('features',this)">Features (${features.length})</div>
-    <div class="tab" onclick="switchTab('json',this)">JSON Export</div>
-  </div>
-
-  <div class="tab-panel">
-    <div id="tab-issues" class="tab-content active">
-      <div class="filters">
-        <div class="chip crit-chip ${_activeFilters.has('CRITICAL')?'active':''}" onclick="toggleFilter('CRITICAL',this)">🔴 Critical (${crits.length})</div>
-        <div class="chip warn-chip ${_activeFilters.has('WARNING')?'active':''}" onclick="toggleFilter('WARNING',this)">🟡 Warning (${warns.length})</div>
-        <div class="chip info-chip ${_activeFilters.has('INFO')?'active':''}" onclick="toggleFilter('INFO',this)">🔵 Info (${infos.length})</div>
-      </div>
-      <div id="issueList">${renderIssueList(issues)}</div>
-    </div>
-
-    <div id="tab-features" class="tab-content">
-      ${renderFeaturesTable(features)}
-    </div>
-
-    <div id="tab-json" class="tab-content">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button class="btn btn-secondary" style="font-size:.78rem;padding:7px 14px"
-          onclick="copyJson()">📋 Copy JSON</button>
-      </div>
-      <div class="json-out" id="jsonOut">${escHtml(JSON.stringify(jsonData, null, 2))}</div>
-    </div>
-  </div>`;
-
-  document.getElementById('results').innerHTML = html;
+    if(transChecks>0)transScore=Math.round((transPassed/transChecks)*15);
+    if(transScore<15)deductions.push(`âˆ’${15-transScore} pts Â· ${transChecks-transPassed}/${transChecks} translation checks failed`);
+  }else if(!fastaLoaded){deductions.push('FASTA not provided â€” translation validity assumed perfect');}
+  let hygieneScore=10;const forbiddenCount=issues.filter(i=>i.code==='FORBIDDEN_QUALIFIER').length,invalidCount=issues.filter(i=>i.code==='INVALID_QUALIFIER').length;let trnaBadCount=0;for(const t of trnas){const len=flen(t);if(len<60||len>100)trnaBadCount++;}hygieneScore-=forbiddenCount*2;hygieneScore-=invalidCount*1;hygieneScore-=trnaBadCount*1;hygieneScore=Math.max(0,hygieneScore);
+  if(forbiddenCount>0)deductions.push(`âˆ’${forbiddenCount*2} pts Â· ${forbiddenCount} forbidden qualifier${forbiddenCount>1?'s':''}`);
+  if(invalidCount>0)deductions.push(`âˆ’${invalidCount} pts Â· ${invalidCount} invalid qualifier${invalidCount>1?'s':''}`);
+  if(trnaBadCount>0)deductions.push(`âˆ’${trnaBadCount} pts Â· ${trnaBadCount} tRNA${trnaBadCount>1?'s':''} outside 60-100 bp`);
+  let refConcordMax=_refLoaded?20:0;
+  if(_refLoaded&&_lastComparison.length>0){const matched=_lastComparison.filter(r=>r.inUser&&r.inRef),concordant=matched.filter(r=>r.overallStatus==='ok'),concordPct=matched.length>0?concordant.length/matched.length:0;refConcordScore=Math.round(concordPct*refConcordMax);if(refConcordScore<refConcordMax&&matched.length>0)deductions.push(`âˆ’${refConcordMax-refConcordScore} pts Â· ${matched.length-concordant.length}/${matched.length} matched genes have discrepancies with reference`);else if(matched.length===0)deductions.push(`âˆ’${refConcordMax} pts Â· No matched genes found between annotation and reference`);}else if(_refLoaded){refConcordScore=refConcordMax;}
+  const total=geneScore+structScore+cdsScore+transScore+hygieneScore+refConcordScore;
+  let band,bandLabel,bandDesc,bandClass;
+  if(total>=90){band='Submission-Ready';bandLabel='âœ“ Ready';bandDesc='Ready to submit to NCBI with no blocking errors';bandClass='score-band-ready';}else if(total>=70){band='Minor Issues';bandLabel='Minor Issues';bandDesc='Minor issues detected â€” submission possible but review recommended';bandClass='score-band-minor';}else if(total>=50){band='Needs Review';bandLabel='Needs Review';bandDesc='Multiple issues detected â€” review and fix before submission';bandClass='score-band-review';}else{band='Major Revision';bandLabel='Major Revision';bandDesc='Significant issues â€” major revision required before submission';bandClass='score-band-revision';}
+  const categories=[{name:'Gene Completeness',earned:geneScore,max:geneMax,note:geneScore===geneMax?'All expected genes present':`${presentCount}/${expectedArr.length} expected genes present`},{name:'Structural Integrity',earned:structScore,max:25,note:structScore===25?'No structural errors':`${crits.length} critical, ${warns.length} warnings`},{name:'CDS Annotation Quality',earned:cdsScore,max:20,note:cdsScore===20?'All CDS properly annotated':`${cdsPoolScore}/${totalCdsPools} checks passed`},{name:'Translation Validity',earned:transScore,max:15,note:fastaLoaded?(transScore===15?'All translations valid':'Translation issues detected'):'FASTA not provided â€” assumed valid'},{name:'Annotation Hygiene',earned:hygieneScore,max:10,note:hygieneScore===10?'Clean annotation':`${forbiddenCount+invalidCount+trnaBadCount} hygiene issue${(forbiddenCount+invalidCount+trnaBadCount)!==1?'s':''}`}];
+  if(_refLoaded){categories.push({name:'Reference Concordance',earned:refConcordScore,max:refConcordMax,note:refConcordScore===refConcordMax?'All matched genes concordant with reference':`Based on ${_refData?.seqId||'reference'}`});}
+  return{total,band,bandLabel,bandDesc,bandClass,categories,deductions};
 }
 
-function renderIssueList(issues) {
-  const filtered = issues.filter(i => _activeFilters.has(i.sev));
-  if (!filtered.length)
-    return `<div class="empty-state"><div class="empty-icon">✅</div>No issues to show.</div>`;
+function renderScorePanel(score){const circumference=2*Math.PI*60;let html=`<div class="score-panel"><div class="score-header"><div class="score-gauge-wrap"><svg width="160" height="160" viewBox="0 0 160 160"><circle class="score-gauge-bg" cx="80" cy="80" r="60"/><circle class="score-gauge-fill" cx="80" cy="80" r="60" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}" id="scoreGaugeFill" style="stroke:${score.total>=90?'var(--info)':score.total>=70?'var(--warn)':score.total>=50?'#ff6348':'var(--crit)'}"/></svg><div class="score-gauge-center"><div class="score-number" id="scoreNumber" style="color:${score.total>=90?'var(--info)':score.total>=70?'var(--warn)':score.total>=50?'#ff6348':'var(--crit)'}">0</div><div class="score-label ${score.bandClass}">/100</div></div></div><div style="flex:1"><div style="font-size:1.2rem;font-weight:700;${score.total>=90?'color:var(--info)':score.total>=70?'color:var(--warn)':score.total>=50?'color:#ff6348':'color:var(--crit)'}">${score.band}</div><div class="score-desc">${score.bandDesc}${_refLoaded?`<br><span style="font-size:.75rem;color:var(--muted)">Reference concordance included (based on ${_refData?.seqId||'reference'})</span>`:''}</div><button class="btn btn-secondary" style="margin-top:12px;font-size:.75rem;padding:6px 14px;" onclick="copyScoreCitation()">ðŸ“‹ Copy for paper</button></div></div><div class="score-breakdown">${score.categories.map(c=>`<div class="score-card"><div class="score-card-name">${c.name}</div><div class="score-card-points">${c.earned}/${c.max} pts</div><div class="score-card-bar"><div class="score-card-bar-fill" style="width:0%;background:${c.earned===c.max?'var(--info)':c.earned>=c.max*0.7?'var(--warn)':c.earned>=c.max*0.4?'#ff6348':'var(--crit)'}" id="bar-${c.name.replace(/\s/g,'')}"></div></div><div class="score-card-note">${c.note}</div></div>`).join('')}</div>${score.deductions.length>0?`<div class="score-deductions">${score.deductions.map(d=>`<div>âˆ’ ${d}</div>`).join('')}</div>`:''}</div>`;return html;}
 
-  return filtered.map((issue, idx) => `
-  <div class="issue ${issue.sev.toLowerCase()}" style="animation-delay:${idx*0.03}s">
-    <div class="issue-badge">${issue.sev}</div>
-    <div class="issue-body">
-      <div class="issue-code">${issue.code}</div>
-      <div class="issue-msg">${escHtml(issue.msg)}</div>
-      ${issue.f1 ? `<div class="feature-info">feature: ${escHtml(featLabel(issue.f1))}${issue.f2?'\nfeature2: '+escHtml(featLabel(issue.f2)):''}</div>`:''}
-    </div>
-  </div>`).join('');
-}
+function animateScore(score){requestAnimationFrame(()=>{const fill=document.getElementById('scoreGaugeFill'),num=document.getElementById('scoreNumber');if(!fill||!num)return;const circumference=2*Math.PI*60,targetOffset=circumference-(score.total/100)*circumference;fill.style.strokeDashoffset=targetOffset;let current=0;const duration=1200,start=performance.now();function tick(now){const progress=Math.min((now-start)/duration,1);current=Math.round(progress*score.total);num.textContent=current;if(progress<1)requestAnimationFrame(tick);else num.textContent=score.total;}requestAnimationFrame(tick);score.categories.forEach(c=>{const bar=document.getElementById('bar-'+c.name.replace(/\s/g,''));if(bar)setTimeout(()=>{bar.style.width=(c.earned/c.max*100)+'%';},300);});});}
 
-function renderFeaturesTable(features) {
-  if (!features.length) return '<div class="empty-state"><div class="empty-icon">📭</div>No features parsed.</div>';
+let _autoFixes=[],_correctedTable=null;
+function buildAutoFixesForClone(issues,clonedFeatures,clonedTable,organism){const fixes=[],origToClone=new Map();for(let i=0;i<_lastFeatures.length;i++)origToClone.set(_lastFeatures[i],clonedFeatures[i]);const refProductMap={};if(_refLoaded&&_refFeatures.length){for(const rf of _refFeatures){if(rf.geneName&&rf.productName)refProductMap[norm(rf.geneName)]=rf.productName;}}for(const issue of issues){if(issue.code==='CDS_WITHOUT_GENE'&&issue.f1){const origCds=issue.f1,cds=origToClone.get(origCds);if(!cds)continue;const geneName=cds.geneName||cds.productName||'unknown_gene',ts=isTransSplicedFeature(cds);fixes.push({id:'fix_'+fixes.length,issue,title:`Auto-generate missing gene for CDS "${geneName}"${ts?' [trans-spliced]':''}`,explanation:ts?`NCBI requires every CDS to have a parent gene feature. For this trans-spliced gene, the gene feature will span from the lowest to highest coordinate across all exons.`:`NCBI requires every CDS to have a parent gene feature. A gene feature will be created with the same coordinates and gene name as this CDS.`,before:featLabel(cds),after:`New gene feature: gene(${geneName}) @ ${cds.spans.map(s=>s.strand==='-'?`c${s.start}-${s.end}`:`${s.start}-${s.end}`).join(',')}`,autoFixable:true,apply:(tbl)=>{const targetCds=origToClone.get(origCds);if(!targetCds)return tbl;const newGene={type:'gene',spans:[{start:targetCds.low,end:targetCds.high,strand:targetCds.spans[0].strand,low:targetCds.low,high:targetCds.high}],qualifiers:{gene:[geneName]},geneName,productName:null,partial5:targetCds.partial5,partial3:targetCds.partial3,low:targetCds.low,high:targetCds.high};const idx=tbl.features.indexOf(targetCds);if(idx>=0)tbl.features.splice(idx,0,newGene);else tbl.features.push(newGene);targetCds.geneName=geneName;return tbl;}});}else if(issue.code==='MISSING_TRANSL_TABLE'&&issue.f1){const origCds=issue.f1,cds=origToClone.get(origCds);if(!cds)continue;const code=resolveGeneticCode(cds),tt=code?code.id:(document.getElementById('organism')?.value?5:null);if(!tt)continue;fixes.push({id:'fix_'+fixes.length,issue,title:`Add transl_table=${tt} to CDS "${cds.geneName||cds.productName||'?'}"`,explanation:`Every CDS needs a transl_table qualifier. Based on the genetic code selection, code ${tt} will be added.`,before:featLabel(cds)+' (no transl_table)',after:featLabel(cds)+` (+ transl_table=${tt})`,autoFixable:true,apply:(tbl)=>{const targetCds=origToClone.get(origCds);if(!targetCds)return tbl;if(!targetCds.qualifiers['transl_table'])targetCds.qualifiers['transl_table']=[];targetCds.qualifiers['transl_table'][0]=String(tt);return tbl;}});}else if(issue.code==='RNA_WITHOUT_GENE'&&issue.f1){const origRna=issue.f1,rna=origToClone.get(origRna);if(!rna)continue;const geneName=rna.geneName||rna.productName||'unknown_rna_gene';fixes.push({id:'fix_'+fixes.length,issue,title:`Auto-generate missing gene for ${rna.type} "${geneName}"`,explanation:`NCBI requires every ${rna.type} to have a parent gene feature.`,before:featLabel(rna),after:`New gene feature for ${rna.type}(${geneName})`,autoFixable:true,apply:(tbl)=>{const targetRna=origToClone.get(origRna);if(!targetRna)return tbl;const newGene={type:'gene',spans:[{start:targetRna.spans[0].start,end:targetRna.spans[targetRna.spans.length-1].end,strand:targetRna.spans[0].strand,low:targetRna.low,high:targetRna.high}],qualifiers:{gene:[geneName]},geneName,productName:null,partial5:targetRna.partial5,partial3:targetRna.partial3,low:targetRna.low,high:targetRna.high};const idx=tbl.features.indexOf(targetRna);if(idx>=0)tbl.features.splice(idx,0,newGene);else tbl.features.push(newGene);targetRna.geneName=geneName;return tbl;}});}else if(issue.code==='MISSING_CODON_START'&&issue.f1){const origCds=issue.f1,cds=origToClone.get(origCds);if(!cds)continue;fixes.push({id:'fix_'+fixes.length,issue,title:`Add codon_start=1 to CDS "${cds.geneName||cds.productName||'?'}"`,explanation:`codon_start defaults to 1, but NCBI prefers it to be explicit.`,before:featLabel(cds)+' (no codon_start)',after:featLabel(cds)+' (+ codon_start=1)',autoFixable:true,apply:(tbl)=>{const targetCds=origToClone.get(origCds);if(!targetCds)return tbl;if(!targetCds.qualifiers['codon_start'])targetCds.qualifiers['codon_start']=[];targetCds.qualifiers['codon_start'][0]='1';return tbl;}});}else if(issue.code==='GENE_WITHOUT_CHILD'&&issue.f1){fixes.push({id:'fix_'+fixes.length,issue,title:`Gene "${issue.f1.geneName||'?'}" has no child feature`,explanation:`This gene feature has no associated CDS, tRNA, or rRNA. This requires manual review.`,before:featLabel(issue.f1),after:'â€” manual fix required â€”',autoFixable:false});}else if(issue.code==='MISSING_PRODUCT'&&issue.f1){const geneKey=norm(issue.f1.geneName),refSuggestion=geneKey?refProductMap[geneKey]:null;fixes.push({id:'fix_'+fixes.length,issue,title:`"${featLabel(issue.f1)}" lacks product qualifier`,explanation:refSuggestion?`A product qualifier is required. Reference annotation uses: "${refSuggestion}"`:`A product qualifier is required.`,before:featLabel(issue.f1),after:'â€” manual fix required â€”',autoFixable:false});}}return fixes;}
+function renderAutoFixTab(fixes){if(!fixes.length)return'<div class="empty-state"><div class="empty-icon">âœ…</div>No auto-fix suggestions available.</div>';const autoCount=fixes.filter(f=>f.autoFixable).length;let html=`<div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span style="font-size:.85rem;color:var(--muted)">${autoCount} auto-fixable, ${fixes.length-autoCount} manual</span><button class="btn btn-secondary" style="font-size:.78rem;padding:7px 14px" onclick="downloadCorrectedTBL()">â¬‡ Download Corrected .tbl</button></div><div style="font-size:.7rem;color:var(--muted);margin-bottom:16px">ðŸ’¡ Fixes modify a working copy. <a href="javascript:void(0)" onclick="runValidation()" style="color:var(--accent);text-decoration:underline;cursor:pointer">Re-validate</a> to refresh.</div>`;for(const fix of fixes){html+=`<div class="autofix-card" id="${fix.id}"><div class="autofix-header"><div class="autofix-title">${fix.title}</div><span class="autofix-badge ${fix.autoFixable?'auto':'manual'}">${fix.autoFixable?'Auto-Fix':'Manual Review'}</span></div><div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">${fix.explanation}</div>${fix.autoFixable?`<div class="autofix-diff"><span class="diff-rem">âˆ’ ${escHtml(fix.before)}</span>\n<span class="diff-add">+ ${escHtml(fix.after)}</span></div>`:`<div class="autofix-diff" style="color:var(--muted)">${escHtml(fix.before)}</div>`}<div class="autofix-actions">${fix.autoFixable?`<button class="btn-sm btn-apply" onclick="applyAutoFix('${fix.id}')">âœ… Apply Fix</button>`:`<button class="btn-sm" disabled>ðŸ”’ Manual Fix Required</button>`}<button class="btn-sm btn-dismiss" onclick="dismissAutoFix('${fix.id}')">Dismiss</button></div></div>`;}return html;}
+function applyAutoFix(fixId){const fix=_autoFixes.find(f=>f.id===fixId);if(!fix||!_correctedTable)return;_correctedTable=fix.apply(_correctedTable);const card=document.getElementById(fixId);if(card)card.classList.add('applied');}
+function dismissAutoFix(fixId){const card=document.getElementById(fixId);if(card)card.classList.add('dismissed');}
+function downloadCorrectedTBL(){if(!_correctedTable)return;const text=rebuildTBL(_correctedTable),blob=new Blob([text],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(_correctedTable.seqId||'corrected')+'.tbl';a.click();URL.revokeObjectURL(url);}
 
-  const typeTag = t => {
-    const cls = {gene:'tag-gene',CDS:'tag-cds',tRNA:'tag-trna',rRNA:'tag-rrna'}[t]||'tag-misc';
-    return `<span class="tag ${cls}">${t}</span>`;
-  };
-  const strandIcon = s => s==='-' ? `<span class="strand-minus">− rev</span>` : `<span class="strand-plus">+ fwd</span>`;
-
-  return `<div class="features-table-wrap"><table>
-    <thead><tr>
-      <th>#</th><th>Type</th><th>Gene</th><th>Product</th>
-      <th>Coordinates</th><th>Spans</th><th>Strand</th><th>Partial</th>
-      ${_fastaLoaded ? '<th>Actions</th>' : ''}
-    </tr></thead>
-    <tbody>
-    ${features.map((f,i) => `<tr>
-      <td style="color:var(--muted)">${i+1}</td>
-      <td>${typeTag(f.type)}</td>
-      <td>${escHtml(f.geneName||'—')}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(f.productName||'—')}</td>
-      <td>${f.spans.map(s=>s.strand==='-'?`c${s.start}–${s.end}`:`${s.start}–${s.end}`).join('<br>')}</td>
-      <td style="color:var(--muted)">${f.spans.length}</td>
-      <td>${strandIcon(f.spans[0]?.strand||'+')}</td>
-      <td style="color:var(--muted);font-size:.7rem">${[f.partial5?'5\'':'',f.partial3?'3\'':''].filter(Boolean).join(' ')||'—'}</td>
-      ${_fastaLoaded ? `
-      <td>
-        <div style="display:flex;gap:4px;flex-wrap:wrap">
-          ${f.type==='CDS' ? `
-          <button class="btn btn-secondary" style="font-size:.68rem;padding:3px 8px" onclick="blastCDS(${i})" title="Search NCBI BLAST">🧬 BLAST</button>
-          <button class="btn btn-secondary" style="font-size:.68rem;padding:3px 8px" onclick="showCodons(${i})" title="View codon translation">🔬 Codons</button>
-          ` : '<span style="color:var(--muted);font-size:.7rem">—</span>'}
-        </div>
-      </td>` : ''}
-    </tr>`).join('')}
-    </tbody>
-  </table></div>`;
-}
-
-function switchTab(name, el) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-'+name)?.classList.add('active');
-}
-
-function toggleFilter(sev, el) {
-  if (_activeFilters.has(sev)) _activeFilters.delete(sev);
-  else _activeFilters.add(sev);
-  el.classList.toggle('active');
-  document.getElementById('issueList').innerHTML = renderIssueList(_lastIssues);
-}
-
-function copyJson() {
-  const txt = document.getElementById('jsonOut')?.textContent || '';
-  navigator.clipboard?.writeText(txt).then(()=>{
-    const btn = event.target;
-    btn.textContent = '✅ Copied!';
-    setTimeout(()=>btn.textContent='📋 Copy JSON', 1500);
-  });
-}
-
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function blastCDS(featureIndex) {
-  const feature = _lastFeatures[featureIndex];
-  if (!feature || feature.type !== 'CDS') { alert('Not a CDS feature'); return; }
-  
-  const geneName = feature.geneName || feature.productName || 'unknown';
-  const cdsSeq = extractCDSSequence(feature, _lastSeqId);
-  
-  if (!cdsSeq) {
-    alert(`Could not extract sequence. Check FASTA file and sequence ID.`);
-    return;
+function renderCodonIntel(feature,featureIndex,seqId,organism){if(!_fastaLoaded||feature.type!=='CDS')return'';const seq=extractCDSSequence(feature,seqId);if(!seq||seq.length<3)return'';const code=resolveGeneticCode(feature);if(!code)return'';const cs=parseInt(feature.qualifiers['codon_start']?.[0]||'1'),adj=seq.slice(cs-1),ts=isTransSplicedFeature(feature);let html=`<div style="cursor:pointer;font-size:.7rem;margin-top:2px;color:var(--accent)" onclick="toggleCodonIntel('codonIntel_${featureIndex}')">ðŸ§¬ Codon Intel â–¾</div><div class="codon-intel-row" id="codonIntel_${featureIndex}">${renderCodonIntelContent(feature,adj,code,ts)}</div>`;return html;}
+function renderCodonIntelContent(feature,adj,code,ts){const startCodon=adj.substr(0,3),finalCodon=adj.substr(adj.length-3,3);let internalStops=0;for(let i=3;i+2<adj.length-3;i+=3){if(isStopCodon(adj.substr(i,3),code))internalStops++;}const isValidStart=isValidStartCodon(startCodon,code),isCanonicalStart=startCodon==='ATG',hasAbbreviatedStop=!feature.partial3&&adj.length%3===1&&adj[adj.length-1]==='T',adjForStop=hasAbbreviatedStop?adj.slice(0,-1):adj,stopCheckCodon=adjForStop.length>=3?adjForStop.substr(adjForStop.length-3,3):'',hasStop=isStopCodon(stopCheckCodon,code)||hasAbbreviatedStop;let startColor='dot-green',startLabel='Valid start';if(!isValidStart){startColor='dot-red';startLabel='Invalid start codon';}else if(!isCanonicalStart){startColor='dot-yellow';startLabel='Alternative start';}let stopColor,stopLabel;if(hasAbbreviatedStop){stopColor='dot-yellow';stopLabel='Abbreviated stop (Tâ†’TAA via poly-A)';}else if(hasStop){stopColor='dot-green';stopLabel='Valid stop';}else{stopColor='dot-red';stopLabel='No terminal stop';}const internalColor=internalStops===0?'dot-green':'dot-red',internalLabel=internalStops===0?'No internal stops':`${internalStops} internal stop${internalStops>1?'s':''}`;let suggestions='';if(ts){suggestions+=`<div style="margin-top:4px;color:var(--accent2)">â„¹ï¸ Trans-spliced: ${feature.spans.length} exons joined.</div>`;}if(!isValidStart&&adj.length>=6){const shiftFwd=adj.substr(3,3);if(isValidStartCodon(shiftFwd,code)){suggestions+=`<div style="margin-top:4px;color:var(--warn)">ðŸ’¡ Shift start +3 bp: "${shiftFwd}" is a valid start codon</div>`;}}
+  if (!hasStop && !hasAbbreviatedStop) {
+    if (ts) {
+      suggestions += `<div style="margin-top:4px;color:var(--warn)">âš ï¸ No terminal stop codon in joined sequence. Check last exon boundary.</div>`;
+    } else {
+      for (let i = adj.length-3; i >= 0; i -= 3) {
+        if (isStopCodon(adj.substr(i,3), code)) {
+          const extension = adj.length - i;
+          const lastSpan = feature.spans[feature.spans.length - 1];
+          const stopPos = lastSpan.strand === '-'
+            ? lastSpan.end - extension
+            : lastSpan.end + extension - 3;
+          suggestions += `<div style="margin-top:4px;color:var(--warn)">ðŸ’¡ Nearest in-frame stop ~${extension} bp past last exon end (genomic pos ~${stopPos})</div>`;
+          break;
+        }
+      }
+    }
   }
-  
-  const blastUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi?' + new URLSearchParams({
-    PROGRAM: 'blastn', PAGE_TYPE: 'BlastSearch',
-    QUERY: cdsSeq,
-    JOB_TITLE: `${geneName} (${feature.spans.length} exon${feature.spans.length>1?'s':''})`,
-    DATABASE: 'nt', BLAST_PROGRAMS: 'megaBlast'
-  });
-  
-  if (confirm(`🧬 BLAST CDS: ${geneName}\n\nLength: ${cdsSeq.length} bp\nExons: ${feature.spans.length}\n\nOpen NCBI BLASTN?`)) {
-    window.open(blastUrl, '_blank');
-  }
-}
+  return `<div class="codon-intel-item"><span class="codon-intel-dot ${startColor}"></span>${startLabel}: ${startCodon}</div><div class="codon-intel-item"><span class="codon-intel-dot ${stopColor}"></span>${stopLabel}${hasAbbreviatedStop?'':`: ${stopCheckCodon}`}</div><div class="codon-intel-item"><span class="codon-intel-dot ${internalColor}"></span>${internalLabel}</div>${suggestions}`;}
+function toggleCodonIntel(id){const el=document.getElementById(id);if(el)el.classList.toggle('open');}
 
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') runValidation();
-});
+let _activeFilters=new Set(['CRITICAL','WARNING','INFO']),_lastIssues=[],_lastFeatures=[],_lastSeqId='',_lastOrganism='',_scoreData=null,_refData=null,_refFeatures=[],_refSeqId='',_refLoaded=false,_lastComparison=[],_lastStats=null;
+
+async function runValidation(){const text=document.getElementById('pasteArea').value.trim();if(!text){alert('Please paste a feature table or load a file.');return;}const organism=document.getElementById('organism').value;_lastOrganism=organism;const btn=document.getElementById('validateBtn');btn.disabled=true;btn.textContent='â³ Validating...';_lastFeatures=[];_autoFixes=[];_correctedTable=null;_lastComparison=[];await loadGeneticCodes();setTimeout(()=>{try{const tables=parseFeatureTable(text);let allIssues=[],allFeatures=[],seqId=tables[0]?.seqId||'<unnamed>';for(const t of tables){allIssues=allIssues.concat(validate(t,organism));allFeatures=allFeatures.concat(t.features);if(tables.length>1)seqId=tables.map(t=>t.seqId).join(', ');}_lastIssues=allIssues;_lastFeatures=allFeatures;_lastSeqId=seqId;_activeFilters=new Set(['CRITICAL','WARNING','INFO']);if(_refLoaded&&_refFeatures.length){_lastComparison=computeReferenceComparison(allFeatures,_refFeatures,seqId);}_scoreData=computeScore(allIssues,allFeatures,organism,_fastaLoaded,seqId);_lastStats=computeGenomeStats(allFeatures,seqId,organism);_correctedTable={seqId:tables[0].seqId,features:allFeatures.map(f=>({type:f.type,spans:f.spans.map(s=>({start:s.start,end:s.end,strand:s.strand,low:s.low,high:s.high})),qualifiers:Object.fromEntries(Object.entries(f.qualifiers).map(([k,v])=>[k,[...v]])),geneName:f.geneName,productName:f.productName,partial5:f.partial5,partial3:f.partial3,low:f.low,high:f.high}))};_autoFixes=buildAutoFixesForClone(allIssues,_correctedTable.features,_correctedTable,organism);renderResults(allIssues,allFeatures,seqId,organism);}catch(e){document.getElementById('results').innerHTML=`<div style="color:var(--crit);padding:20px;font-family:var(--mono)">Parse error: ${e.message}</div>`;}btn.disabled=false;btn.textContent='â–¶ Validate';},50);}
+
+function renderResults(issues,features,seqId,organism){const crits=issues.filter(i=>i.sev==='CRITICAL'),warns=issues.filter(i=>i.sev==='WARNING'),infos=issues.filter(i=>i.sev==='INFO');let html='';if(_scoreData)html+=renderScorePanel(_scoreData);html+=`<div class="summary-bar"><div class="stat stat-crit" data-tip="Submission will fail"><div class="stat-value">${crits.length}</div><div class="stat-label">Critical</div></div><div class="stat stat-warn" data-tip="Likely problematic"><div class="stat-value">${warns.length}</div><div class="stat-label">Warnings</div></div><div class="stat stat-info" data-tip="Optional improvements"><div class="stat-value">${infos.length}</div><div class="stat-label">Info</div></div><div class="stat stat-feat" data-tip="Total features parsed"><div class="stat-value">${features.length}</div><div class="stat-label">Features</div></div>${_fastaLoaded?`<div class="stat" style="background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.3)"><div class="stat-value" style="color:var(--accent);font-size:1.5rem">âœ“</div><div class="stat-label" style="color:var(--accent)">FASTA</div></div>`:''}${_refLoaded?`<div class="stat" style="background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.3)"><div class="stat-value" style="color:var(--accent2);font-size:1.5rem">âŠ•</div><div class="stat-label" style="color:var(--accent2)">Reference</div></div>`:''}</div><div class="tabs"><div class="tab active" onclick="switchTab('issues',this)">Issues (${issues.length})</div><div class="tab" onclick="switchTab('features',this)">Features (${features.length})</div><div class="tab" onclick="switchTab('autofix',this)">Auto-Fix (${_autoFixes.length})</div>${_refLoaded?`<div class="tab" onclick="switchTab('refcompare',this)">Ref Compare</div>`:`<div class="tab disabled" data-tip="Load a .gb reference file to enable">Ref Compare</div>`}<div class="tab" onclick="switchTab('stats',this)">Stats</div><div class="tab" onclick="switchTab('json',this)">JSON Export</div></div><div class="tab-panel"><div id="tab-issues" class="tab-content active"><div class="filters"><div class="chip crit-chip ${_activeFilters.has('CRITICAL')?'active':''}" onclick="toggleFilter('CRITICAL',this)">ðŸ”´ Critical (${crits.length})</div><div class="chip warn-chip ${_activeFilters.has('WARNING')?'active':''}" onclick="toggleFilter('WARNING',this)">ðŸŸ¡ Warning (${warns.length})</div><div class="chip info-chip ${_activeFilters.has('INFO')?'active':''}" onclick="toggleFilter('INFO',this)">ðŸ”µ Info (${infos.length})</div></div><div id="issueList">${renderIssueList(issues)}</div></div><div id="tab-features" class="tab-content">${renderFeaturesTable(features,seqId,organism)}</div><div id="tab-autofix" class="tab-content">${renderAutoFixTab(_autoFixes)}</div>${_refLoaded?`<div id="tab-refcompare" class="tab-content"><div id="tab-refcompare-content">${_lastComparison.length?renderRefCompareTab(_lastComparison,_refData):'<div class="empty-state"><div class="empty-icon">ðŸ”¬</div>No matching genes found between your annotation and the reference.</div>'}</div></div>`:''}<div id="tab-stats" class="tab-content">${_lastStats ? renderStatsTab(_lastStats, seqId) : '<div class="empty-state"><div class="empty-icon">ðŸ“Š</div>Run validation to see statistics.</div>'}</div><div id="tab-json" class="tab-content"><div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn btn-secondary" style="font-size:.78rem;padding:7px 14px" onclick="copyJson()">ðŸ“‹ Copy JSON</button></div><div class="json-out" id="jsonOut">${escHtml(JSON.stringify({sequence_id:seqId,summary:{critical:crits.length,warnings:warns.length,info:infos.length},score:_scoreData?{total:_scoreData.total,band:_scoreData.band}:null},null,2))}</div></div></div>`;document.getElementById('results').innerHTML=html;if(_scoreData)setTimeout(()=>animateScore(_scoreData),100);}
+function renderIssueList(issues){const filtered=issues.filter(i=>_activeFilters.has(i.sev));if(!filtered.length)return`<div class="empty-state"><div class="empty-icon">âœ…</div>No issues to show.</div>`;return filtered.map((issue,idx)=>`<div class="issue ${issue.sev.toLowerCase()}" style="animation-delay:${idx*0.03}s"><div class="issue-badge">${issue.sev}</div><div class="issue-body"><div class="issue-code">${issue.code}</div><div class="issue-msg">${escHtml(issue.msg)}</div>${issue.f1?`<div class="feature-info">feature: ${escHtml(featLabel(issue.f1))}${issue.f2?'\nfeature2: '+escHtml(featLabel(issue.f2)):''}</div>`:''}</div></div>`).join('');}
+function renderFeaturesTable(features,seqId,organism){if(!features.length)return'<div class="empty-state"><div class="empty-icon">ðŸ“­</div>No features parsed.</div>';const typeTag=t=>{const cls={gene:'tag-gene',CDS:'tag-cds',tRNA:'tag-trna',rRNA:'tag-rrna'}[t]||'tag-misc';return`<span class="tag ${cls}">${t}</span>`;},strandIcon=s=>s==='-'?`<span class="strand-minus">âˆ’ rev</span>`:`<span class="strand-plus">+ fwd</span>`;const refLenMap={};if(_refLoaded&&_lastComparison.length){for(const row of _lastComparison){if(row.inRef&&row.refCds)refLenMap[norm(row.geneName)]=row.refCDSLen;}}return`<div class="features-table-wrap"><table><thead><tr><th>#</th><th>Type</th><th>Gene</th><th>Product</th><th>Coordinates</th><th>Spans</th><th>Strand</th><th>Partial</th>${_fastaLoaded?'<th>Actions</th>':''}</tr></thead><tbody>${features.map((f,i)=>{const ts=isTransSplicedFeature(f);return`<tr><td style="color:var(--muted)">${i+1}</td><td>${typeTag(f.type)}</td><td>${escHtml(f.geneName||'â€”')}${ts?'<span class="tag-ts">TS</span>':''}${_refLoaded&&f.type==='CDS'&&refLenMap[norm(f.geneName)]?` <span style="color:var(--accent2);font-size:.65rem">[ref: ${refLenMap[norm(f.geneName)]} bp]</span>`:''}${_fastaLoaded&&f.type==='CDS'?`<br>${renderCodonIntel(f,i,seqId,organism||_lastOrganism)}`:''}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(f.productName||'â€”')}</td><td>${f.spans.map(s=>s.strand==='-'?`c${s.start}â€“${s.end}`:`${s.start}â€“${s.end}`).join('<br>')}</td><td style="color:var(--muted)">${f.spans.length}</td><td>${ts?`<span style="color:var(--accent2)">Â± TS</span>`:strandIcon(f.spans[0]?.strand||'+')}</td><td style="color:var(--muted);font-size:.7rem">${[f.partial5?'5\'':'',f.partial3?'3\'':''].filter(Boolean).join(' ')||'â€”'}</td>${_fastaLoaded?`<td><div style="display:flex;gap:4px;flex-wrap:wrap">${f.type==='CDS'?`<button class="btn btn-secondary" style="font-size:.68rem;padding:3px 8px" onclick="blastCDS(${i})">ðŸ§¬ BLAST</button><button class="btn btn-secondary" style="font-size:.68rem;padding:3px 8px" onclick="showCodons(${i})">ðŸ”¬ Codons</button>`:'<span style="color:var(--muted);font-size:.7rem">â€”</span>'}</div></td>`:''}</tr>`;}).join('')}</tbody></table></div>`;}
+function switchTab(name,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('tab-'+name)?.classList.add('active');}
+function toggleFilter(sev,el){if(_activeFilters.has(sev))_activeFilters.delete(sev);else _activeFilters.add(sev);el.classList.toggle('active');document.getElementById('issueList').innerHTML=renderIssueList(_lastIssues);}
+function copyJson(){const txt=document.getElementById('jsonOut')?.textContent||'';navigator.clipboard?.writeText(txt).then(()=>{const btn=event.target;btn.textContent='âœ… Copied!';setTimeout(()=>btn.textContent='ðŸ“‹ Copy JSON',1500);});}
+function copyScoreCitation(){if(!_scoreData)return;const citation=`Annotation Quality Score: ${_scoreData.total}/100 (${_scoreData.band}) â€” GenBank TBL Validator v2.5`;navigator.clipboard?.writeText(citation).then(()=>{const btn=event.target;btn.textContent='âœ… Copied!';setTimeout(()=>btn.textContent='ðŸ“‹ Copy for paper',1500);});}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function blastCDS(featureIndex){const feature=_lastFeatures[featureIndex];if(!feature||feature.type!=='CDS'){alert('Not a CDS feature');return;}const geneName=feature.geneName||feature.productName||'unknown',cdsSeq=extractCDSSequence(feature,_lastSeqId);if(!cdsSeq){alert('Could not extract sequence.');return;}const blastUrl='https://blast.ncbi.nlm.nih.gov/Blast.cgi?'+new URLSearchParams({PROGRAM:'blastx',PAGE_TYPE:'BlastSearch',QUERY:cdsSeq,JOB_TITLE:`${geneName} (${feature.spans.length} exon${feature.spans.length>1?'s':''})`,DATABASE:'nr'});if(confirm(`ðŸ§¬ BLAST CDS: ${geneName}\n\nLength: ${cdsSeq.length} bp\nExons: ${feature.spans.length}\n\nOpen NCBI BLASTX?`)){window.open(blastUrl,'_blank');}}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')runValidation();});
 </script>
+<footer style="
+  text-align: center; 
+  padding: 30px 24px 20px; 
+  border-top: 1px solid var(--border); 
+  margin-top: 40px;
+  font-family: var(--mono); 
+  font-size: .75rem;
+">
+  <div style="color: var(--muted); margin-bottom: 4px;">
+    GenBank TBL Validator v2.5
+  </div>
+  <div style="color: var(--muted);">
+    Author: <a href="mailto:ouamoa@gmail.com" style="color: var(--accent); text-decoration: none;">Aymen Ouamou</a> 
+    Â· 
+    <a href="https://github.com/MrGhost-Aymen" target="_blank" style="color: var(--accent); text-decoration: none;">GitHub</a>
+  </div>
+</footer>
 </body>
 </html>
