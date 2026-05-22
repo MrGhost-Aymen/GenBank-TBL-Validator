@@ -1,230 +1,287 @@
-# 🧬 GenBank TBL Validator
+# GenBank TBL Validator
 
-A modern, browser-based validator for GenBank 5-column feature tables (`.tbl` format) used in organelle genome submissions to NCBI. Features real-time validation, codon visualization, and BLAST integration.
+A fully client-side, single-file HTML tool for validating NCBI GenBank feature table (`.tbl`) files before submission. Catches the structural and biological errors that cause NCBI rejections, with no server, no install, and no data leaving your browser.
 
-![Version](https://img.shields.io/badge/version-1.2.0-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Status](https://img.shields.io/badge/status-active-success)
+---
 
-## ✨ Features
+## Contents
 
-### 🔍 Comprehensive Validation
-- **Format checks** — Validates 5-column feature table syntax, coordinates, and qualifiers
-- **NCBI compliance** — Catches common submission-rejection issues before you submit
-- **Gene association** — Verifies CDS/tRNA/rRNA features have proper parent gene features
-- **Overlap detection** — Identifies illegal CDS↔RNA overlaps (>3 bp) that NCBI rejects
-- **Strand consistency** — Checks that associated features share the same strand
-- **Qualifier validation** — Flags forbidden (`protein_id`, `transcript_id`) and invalid qualifiers
-- **Gene name errors** — Detects common paste errors (coordinates in gene name field)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Files](#files)
+- [Usage](#usage)
+- [Validation Checks](#validation-checks)
+- [Genome Statistics](#genome-statistics)
+- [Reference Comparison](#reference-comparison)
+- [Codon Inspector](#codon-inspector)
+- [Supported Organisms](#supported-organisms)
+- [Scoring System](#scoring-system)
+- [Changelog](#changelog)
 
-### 🧬 Codon Visualization
-- **In-frame translation** — Extracts CDS sequences from FASTA and translates using the correct genetic code
-- **Codon grid** — Visual representation of every codon with amino acid translation
-- **Protein sequence** — Color-coded amino acid string with start/stop highlighting
-- **Issue detection** — Identifies internal stop codons (pseudogenes?), unknown codons, missing terminal stops
+---
 
-### 🔬 BLAST Integration
-- **One-click BLAST** — Extract CDS sequence and search NCBI BLASTN directly
-- **Sequence validation** — Verify annotation accuracy by comparing BLAST results
+## Quick Start
 
-### 🎨 Modern UI
-- **Dark theme** — Cyberpunk-inspired design with animated grid background
-- **Responsive** — Works on desktop and tablet
-- **Drag & drop** — Upload `.tbl` and `.fasta` files by dragging or browsing
-- **Paste support** — Paste feature table text directly
-- **Filter & sort** — Filter issues by severity (Critical/Warning/Info)
-- **JSON export** — Export validation results as structured JSON
-
-## 🚀 Quick Start
-
-### Option 1: Local Server (Recommended)
 ```bash
-# Clone the repository
-git clone https://github.com/MrGhost-Aymen/genbank-tbl-validator.git
-cd genbank-tbl-validator
+# Clone or download the repository, then open in any modern browser:
+open GB_tbl_validator_v2_6.html
 
-# Start a local server
-python -m http.server 8000
-# OR
-npx serve
+# Or serve locally (required for codon translation and FASTA features):
+python3 -m http.server 8080
+# then visit http://localhost:8080/GB_tbl_validator_v2_6.html
+# or run it directly https://biopep.42web.io/pep1
+```
 
-# Open in browser
-open http://localhost:8000
+> **Note:** Paste-mode (no server) works for all structural validation. FASTA-based checks (start/stop codon validation, internal stop detection, codon usage, GC content) and codon translation require `genetic_codes.json` to be served from the same directory — use a local server.
 
-Option 2: Direct Open
+---
 
-Open index.html directly in your browser. Codon visualization will use built-in genetic codes (organelle-focused). For all 24 genetic codes, use Option 1 with the included genetic_codes.json.
-📋 Supported Organism Types
-Category	Genetic Code	transl_table
-🦋 Invertebrate Mitochondrial	Code 5	5
-🐟 Vertebrate Mitochondrial	Code 2	2
-⭐ Echinoderm/Flatworm Mito	Code 9	9
-🦑 Ascidian Mitochondrial	Code 13	13
-🪱 Trematode Mitochondrial	Code 21	21
-🪸 Pterobranchia Mitochondrial	Code 24	24
-🌿 Plant Mitochondrial	Standard Code 1	1
-🍃 Bacterial/Plant Plastid	Code 11	11
-🟢 Chlorophycean Mito	Code 16	16
-🍄 Yeast Mitochondrial	Code 3	3
-🦠 Mold/Protozoan Mito	Code 4	4
-🍄 Alt. Yeast Nuclear	Code 12	12
-📖 Usage
-Basic Validation
-
-    Select your organism type from the dropdown
-
-    Paste your feature table text or upload a .tbl file
-
-    Optionally upload a .fasta file for codon visualization and BLAST
-
-    Click ▶ Validate
-
-    Review issues in the Issues tab, or browse features in the Features tab
-
-Feature Table Format
-text
-
->Feature sequence_id
-1	1500	gene
-			gene	cox1
-1	1500	CDS
-			gene	cox1
-			product	cytochrome c oxidase subunit I
-			transl_table	5
-
-With FASTA File
-
-When a FASTA file is loaded, each CDS feature gets:
-
-    🧬 BLAST — Opens NCBI BLASTN with extracted CDS sequence
-
-    🔬 Codons — Opens codon-by-codon visualization with translation
-
-Example Data
-
-Click Load example to see a working butterfly (Pyrgus ruralis) mitochondrial annotation.
-🎯 Validation Checks
-Critical Errors (Submission Will Fail)
-
-    ❌ Missing coordinates on features
-
-    ❌ CDS not associated with a gene feature
-
-    ❌ RNA not associated with a gene feature
-
-    ❌ Gene feature with no child (CDS/RNA)
-
-    ❌ Mixed strands within a feature
-
-    ❌ Forbidden qualifiers (protein_id, transcript_id)
-
-    ❌ CDS↔RNA overlap > 3 bp
-
-    ❌ Strand mismatch between gene and its CDS/RNA
-
-    ❌ Gene name is a raw number (paste error)
-
-    ❌ Invalid codon_start value
-
-Warnings (Likely Issues)
-
-    ⚠️ Gene name contains whitespace or number suffixes
-
-    ⚠️ CDS length not divisible by 3 (check codon_start)
-
-    ⚠️ Missing product qualifier
-
-    ⚠️ Missing transl_table
-
-    ⚠️ Unusual tRNA size (< 60 or > 100 bp)
-
-    ⚠️ CDS outside gene boundary
-
-    ⚠️ Unexpected transl_table for selected organism
-
-    ⚠️ Trans-spliced gene with single span
-
-    ⚠️ Duplicate gene names with different coordinates
-
-    ⚠️ Invalid qualifiers (BLAST artefacts)
-
-Info (Suggestions)
-
-    ℹ️ Small CDS↔RNA overlap (within 3 bp tolerance)
-
-    ℹ️ Missing codon_start (defaults to 1)
-
-    ℹ️ Possibly missing expected genes
-
-    ℹ️ Short CDS (< 100 bp, may be partial)
-
-🗂️ File Structure
-text
-
-genbank-tbl-validator/
-├── genbank_validator.html             # Main application
-├── genetic_codes.json      # Complete NCBI genetic codes (optional)
-├── README.md               # This file
-└── LICENSE                 # MIT License
-
-🔧 Technical Details
-Built With
-
-    Vanilla JavaScript — No frameworks, no dependencies
-
-    CSS Custom Properties — Dark theme with consistent design tokens
-
-    Async/Await — Non-blocking genetic code loading
-
-    Tab-Separated Parsing — Handles standard 5-column .tbl format
-
-Browser Support
-
-    Chrome/Edge 90+
-
-    Firefox 88+
-
-    Safari 14+
-
-Known Trans-Spliced Genes
-
-The validator recognizes these trans-spliced genes and allows mixed-strand features:
-nad1, nad2, nad5, rps12, nad7, nad4, cox2
-📝 NCBI Submission Tips
-
-    Always include transl_table on CDS features
-
-    Gene names should match between gene and CDS/rRNA/tRNA features
-
-    CDS↔tRNA overlaps > 3 bp will be rejected — adjust coordinates
-
-    Never include protein_id or transcript_id in .tbl files
-
-    Partial genes should use < and > in coordinates (e.g., <1)
-
-    Trans-spliced genes should use join() with multiple spans
-
-🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-Areas for Contribution
-
-    Additional validation rules for nuclear genomes
-
-    Support for more feature types (intron, exon, mRNA)
-
-    Batch processing of multiple tables
-
-    Annotation fix suggestions
-
-📄 License
-
-MIT License — see LICENSE file for details.
-🙏 Acknowledgments
-
-    NCBI for the Sequin and BankIt submission guidelines
-
-    The organelle genomics community for feedback on validation rules
-
-📬 Contact
-  ouamoa@gmail.com
+## Features
+
+- **Zero dependencies** — single `.html` file, runs entirely in the browser
+- **No data upload** — all parsing and validation happens locally; nothing is sent to any server
+- **Multi-table support** — paste or load `.tbl` files containing multiple sequence tables
+- **Optional FASTA pairing** — paste FASTA alongside the TBL to unlock sequence-level checks
+- **Reference genome comparison** — load a GenBank `.gb` reference to compare annotation coordinates, CDS lengths, and gene content
+- **Inverted Repeat (IR) awareness** — detects chloroplast IR regions and suppresses false duplicates
+- **Trans-splicing support** — correctly handles mixed-strand genes (e.g. `rps12`, `clpP`)
+- **Exportable results** — download issues as TSV, copy genome stats summary to clipboard
+- **Dark, professional UI** — colour-coded severity levels, tabbed interface, responsive layout
+
+---
+
+## Files
+
+```
+GB_tbl_validator_v2_6.html   # Main application (all-in-one)
+genetic_codes.json           # NCBI genetic code tables (required for translation)
+README.md                    # This file
+```
+
+`genetic_codes.json` must be in the same directory as the HTML file when served locally. The tool will work without it but codon-level checks and the Codon Inspector modal will be disabled.
+
+---
+
+## Usage
+
+### 1. Paste your `.tbl` content
+
+Paste the raw text of one or more GenBank feature tables into the left panel. Each table must begin with a `>Feature <seqid>` header line.
+
+```
+>Feature lcl|CP123456
+1	10000	gene
+			gene	rbcL
+1	10000	CDS
+			gene	rbcL
+			product	ribulose-1,5-bisphosphate carboxylase/oxygenase large subunit
+			transl_table	11
+```
+
+### 2. (Optional) Paste FASTA
+
+Paste the corresponding nucleotide FASTA sequence into the right panel to enable:
+- Start codon validation
+- Internal stop codon detection
+- Stop codon verification
+- Abbreviated stop detection (single T / poly-A tail)
+- GC content, GC skew, AT skew
+- Codon usage table (RSCU-style)
+- Per-CDS GC% chart
+
+### 3. Select organism / genetic code
+
+Choose the appropriate organism type from the dropdown. This controls:
+- Which NCBI genetic code table is used for codon validation
+- Which expected gene set is checked for completeness
+
+### 4. Click **Validate**
+
+Results appear in four tabs: **Issues**, **Features**, **Stats**, and **Ref Compare** (if a reference is loaded).
+
+---
+
+## Validation Checks
+
+Issues are classified into three severity levels:
+
+| Level | Colour | Meaning |
+|-------|--------|---------|
+| `CRITICAL` | Red | NCBI will reject the submission |
+| `WARNING` | Amber | Likely error; review before submitting |
+| `INFO` | Green | Informational; may be intentional |
+
+### Critical checks
+
+| Code | Description |
+|------|-------------|
+| `NO_COORDINATES` | Feature has no coordinate spans |
+| `GENE_NAME_IS_NUMBER` | A raw coordinate was pasted into the `gene` qualifier |
+| `MIXED_STRAND_IN_FEATURE` | Feature has spans on both strands without `trans_splicing` qualifier |
+| `FORBIDDEN_QUALIFIER` | `protein_id` or `transcript_id` present in `.tbl` (not allowed) |
+| `CDS_WITHOUT_GENE` | CDS has no associated `gene` feature — NCBI rejects this |
+| `RNA_WITHOUT_GENE` | tRNA or rRNA has no associated `gene` feature |
+| `GENE_WITHOUT_CHILD` | `gene` feature has no CDS or RNA child |
+| `STRAND_MISMATCH` | Gene and its CDS/RNA are on opposite strands (non-IR) |
+| `ILLEGAL_CDS_RNA_OVERLAP` | CDS overlaps a tRNA or rRNA by more than 3 bp |
+| `GENE_COMPLETELY_OVERLAPPED` | One feature is entirely contained within another of the same name — NCBI will reject with "gene completely overlapped by other genes" |
+| `INTERNAL_STOP_CODON` | FASTA-verified: CDS contains an in-frame stop codon (frameshift, wrong genetic code, or bad exon boundary) |
+
+### Warning checks
+
+| Code | Description |
+|------|-------------|
+| `GENE_NAME_WHITESPACE` | Gene name contains spaces |
+| `GENE_NAME_NUMBER_SUFFIX` | Gene name ends with a number (auto-numbering artefact) |
+| `QUALIFIER_ON_GENE` | `product`, `codon_start`, or `protein_id` placed on a `gene` feature instead of CDS |
+| `INVALID_QUALIFIER` | BLAST/tool artefact qualifier present (e.g. `blast_score`, `e_value`) |
+| `CDS_OUTSIDE_GENE` | CDS extends beyond the boundary of its parent gene feature |
+| `GENE_CDS_NAME_MISMATCH` | Overlapping gene and CDS have different gene names |
+| `DUPLICATE_GENE_NAME` | Same gene name appears multiple times with different coordinates (IR pairs suppressed) |
+| `CDS_CDS_OVERLAP` | Two CDS features overlap (non-IR, non-trans-spliced) |
+| `TRNA_UNUSUAL_SIZE` | tRNA length outside expected 60–100 bp range |
+| `CDS_NOT_DIV3` | CDS effective length is not divisible by 3 |
+| `SUSPICIOUS_CDS_LENGTH` | Complete CDS is shorter than 100 bp |
+| `MISSING_PRODUCT` | CDS lacks a `product` qualifier |
+| `MISSING_TRANSL_TABLE` | CDS lacks `transl_table` qualifier (NCBI requires this explicitly) |
+| `UNKNOWN_TRANSL_TABLE` | `transl_table` value is not a recognised NCBI genetic code |
+| `TRANS_SPLICED_SINGLE_SPAN` | `/trans_splicing` present but only one exon span |
+| `RRNA_UNUSUAL_SIZE` | rRNA length outside expected range for its subunit type |
+| `INVALID_START_CODON` | FASTA-verified: CDS does not start with a valid codon for the selected genetic code |
+
+### Info checks
+
+| Code | Description |
+|------|-------------|
+| `TRANS_SPLICED_DETECTED` | Mixed-strand trans-spliced gene detected (expected) |
+| `INVERTED_REPEAT_DETECTED` | IR region identified; lists duplicated gene pairs |
+| `IR_CDS_OVERLAP` | Overlap between IR copy CDS features (expected) |
+| `SMALL_CDS_RNA_OVERLAP` | CDS/RNA overlap ≤ 3 bp (within NCBI tolerance) |
+| `ABBREVIATED_STOP_CODON` | CDS length mod 3 = 1, consistent with single-T abbreviated stop (poly-A tail completes TAA) |
+| `MISSING_CODON_START` | `codon_start` absent (defaults to 1; informational only) |
+| `ALTERNATIVE_START_CODON` | FASTA-verified: CDS uses a non-ATG but valid alternative start codon |
+| `CIRCULAR_WRAPAROUND` | Feature spans cross the genome origin (span ends near seq-end, next span starts at or near position 1) |
+| `POSSIBLY_MISSING_GENES` | One or more expected genes for the selected organism type are absent from the annotation |
+
+---
+
+## Genome Statistics
+
+The **Stats** tab displays a full annotation summary, computed from the TBL and (when available) the FASTA:
+
+- Sequence length, GC%, AT%, GC skew, AT skew
+- Gene / CDS / tRNA / rRNA counts
+- CDS metrics: total bp, average/min/max length, strand distribution, trans-spliced count
+- Coding density, abbreviated stop count, partial feature counts
+- Intergenic gap analysis (count, total bp, average, largest gap)
+- tRNA completeness badge (22 standard tRNAs) with per-amino-acid grid
+- Start and stop codon usage distribution (bar charts)
+- Per-CDS GC% chart with genome-average reference line
+- Codon usage table (RSCU-style, grouped by amino acid)
+- Duplicate coordinate detection
+
+Results can be exported as a TSV file or copied as a formatted plain-text summary.
+
+---
+
+## Reference Comparison
+
+Load a GenBank flat file (`.gb` / `.gbk`) as a reference genome to compare your annotation against a known-good submission. The **Ref Compare** tab shows, for each gene:
+
+- Presence/absence in user vs reference
+- CDS length difference (bp and %)
+- Protein length comparison (when FASTA is loaded)
+- Exon count comparison (with trans-splicing awareness)
+- Strand agreement
+- Translation table agreement
+
+Rows are colour-coded: critical discrepancies (>15% length difference) in red, warnings (>5%) in amber, exact matches in green. Missing or extra genes are flagged separately.
+
+---
+
+## Codon Inspector
+
+Click the **codons** button on any CDS row in the Features tab to open the Codon Inspector modal. It shows:
+
+- Full codon-by-codon translation grid with colour-coded start, stop, and unknown codons
+- Amino acid sequence bar with position highlighting
+- Warnings for internal stops, unknown codons, abbreviated stops, and missing terminal stop
+- Exon breakdown for trans-spliced genes
+
+Requires `genetic_codes.json` and a loaded FASTA sequence.
+
+---
+
+## Supported Organisms
+
+| Dropdown value | NCBI Genetic Code | Notes |
+|----------------|-------------------|-------|
+| Bacterial / Plant Plastid | 11 | Chloroplast genomes; includes full IR awareness |
+| Vertebrate Mitochondrial | 2 | |
+| Invertebrate Mitochondrial | 5 | |
+| Yeast Mitochondrial | 3 | |
+| Mold / Protozoan Mitochondrial | 4 | |
+| Echinoderm / Flatworm Mitochondrial | 9 | |
+| Ascidian Mitochondrial | 13 | |
+| Trematode Mitochondrial | 21 | |
+| Pterobranchia Mitochondrial | 24 | |
+| Chlorophycean Mitochondrial | 16 | |
+| Alternative Yeast Nuclear | 12 | |
+| Standard | 1 | Default fallback |
+
+The selected organism also determines the expected gene set used by `POSSIBLY_MISSING_GENES`. The plant plastid set covers 74 genes including the full photosystem, ribosomal protein, ATP synthase, NADH dehydrogenase, and RNA polymerase complement. Gene name aliases (e.g. `clpP1` → `clpP`) are resolved automatically.
+
+---
+
+## Scoring System
+
+Each validation run produces a quality score (0–100) displayed at the top of the Issues tab. Deductions are severity-weighted:
+
+- Each `CRITICAL` issue: −10 pts
+- Each `WARNING` issue: −3 pts
+- `INFO` issues: no deduction
+
+A score ≥ 90 is considered submission-ready. IR-aware suppression ensures that expected IR duplicates do not contribute false deductions.
+
+---
+
+## Changelog
+
+### v2.6
+- **Fix:** Restored `↔` bidirectional arrow in `CDS_CDS_OVERLAP` messages (was corrupted to `?`)
+- **New check:** `CIRCULAR_WRAPAROUND` — detects features that span the circular genome origin (e.g. `rpl2` wrapping from end of sequence back to position 1)
+- **Parser:** `exception` qualifier is now parsed and stored on features (e.g. `/exception trans-splicing` on `rps12`), enabling future suppression logic
+- **Expected genes:** `bacterial_plant_plastid` set expanded from 43 → 74 genes; added full ribosomal protein complement (`rps2`–`rps19`, `rpl2`–`rpl36`), complete photosystem subunits, and ATP synthase subunits; removed `infA` and `cemA` (frequently absent in angiosperms)
+- **Score engine:** Gene alias normalisation (`clpP1` → `clpP`, `pafI` → `ycf3`, etc.) prevents false "possibly missing" deductions for alternative nomenclature
+
+### v2.5
+- Added `GENE_COMPLETELY_OVERLAPPED` critical check (the primary cause of NCBI rejection for chloroplast tRNA annotations)
+- Added IR duplicate detection and suppression across all checks (`DUPLICATE_GENE_NAME`, `STRAND_MISMATCH`, `CDS_CDS_OVERLAP`)
+- Added `INVERTED_REPEAT_DETECTED` info message listing IR gene pairs
+- Added `CIRCULAR_WRAPAROUND` groundwork (coordinate parser handles wrap-around spans)
+- Codon Inspector modal with full translation grid
+- Reference genome comparison tab
+- RSCU-style codon usage table
+- Per-CDS GC% chart
+
+### v2.0 – v2.4
+- FASTA integration and sequence-level checks
+- Trans-splicing detection and suppression
+- Genome statistics tab
+- Multi-table (multi-sequence) support
+- TSV export and clipboard summary
+
+---
+
+## Known Limitations
+
+- Reference comparison requires a GenBank flat file with `CDS` features and `translation` qualifiers to compute protein lengths
+- `CIRCULAR_WRAPAROUND` uses a heuristic (span starts at position ≤ 5 and previous span ends in the top 10% of sequence length); very short sequences may produce false positives
+- Abbreviated stop codon detection (`T` + poly-A) is confirmed only when FASTA is loaded; without it, a length-mod-1 CDS is reported as `INFO` rather than confirmed
+- The tool does not validate qualifier values against the full INSDC feature table specification (e.g. controlled vocabulary for `product` names)
+
+---
+
+## License
+
+MIT — free to use, modify, and distribute. Attribution appreciated but not required.
