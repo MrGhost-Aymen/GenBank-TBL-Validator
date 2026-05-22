@@ -1,5 +1,7 @@
 # GenBank TBL Validator
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-biopep.42web.io-00d4aa?style=for-the-badge&logo=googlechrome&logoColor=white)](https://biopep.42web.io/pep1)
+
 A fully client-side, single-file HTML tool for validating NCBI GenBank feature table (`.tbl`) files before submission. Catches the structural and biological errors that cause NCBI rejections, with no server, no install, and no data leaving your browser.
 
 ---
@@ -29,7 +31,6 @@ open GB_tbl_validator_v2_6.html
 # Or serve locally (required for codon translation and FASTA features):
 python3 -m http.server 8080
 # then visit http://localhost:8080/GB_tbl_validator_v2_6.html
-# or run it directly https://biopep.42web.io/pep1
 ```
 
 > **Note:** Paste-mode (no server) works for all structural validation. FASTA-based checks (start/stop codon validation, internal stop detection, codon usage, GC content) and codon translation require `genetic_codes.json` to be served from the same directory — use a local server.
