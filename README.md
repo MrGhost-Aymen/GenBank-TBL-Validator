@@ -14,8 +14,10 @@ A fully client-side, single-file HTML tool for validating NCBI GenBank feature t
 - [Usage](#usage)
 - [Validation Checks](#validation-checks)
 - [Genome Statistics](#genome-statistics)
+- [Circular Genome Map](#circular-genome-map)
 - [Reference Comparison](#reference-comparison)
 - [Codon Inspector](#codon-inspector)
+- [Session Persistence](#session-persistence)
 - [Supported Organisms](#supported-organisms)
 - [Scoring System](#scoring-system)
 - [Changelog](#changelog)
@@ -26,52 +28,55 @@ A fully client-side, single-file HTML tool for validating NCBI GenBank feature t
 
 ```bash
 # Clone or download the repository, then open in any modern browser:
-open GB_tbl_validator_v2_12.html
+open GB_tbl_validator_v2_39.html
 
 # Or serve locally (required for codon translation and FASTA features):
 python3 -m http.server 8080
-# then visit http://localhost:8080/GB_tbl_validator_v2_12.html
+# then visit http://localhost:8080/GB_tbl_validator_v2_39.html
 ```
 
-> **Note:** Paste-mode (no server) works for all structural validation. FASTA-based checks (start/stop codon validation, internal stop detection, codon usage, GC content) and codon translation require `genetic_codes.json` to be served from the same directory — use a local server.
+> **Note:** Uploading files (not pasting) is the supported input method — see [Usage](#usage) below. FASTA-based checks (start/stop codon validation, internal stop detection, codon usage/RSCU, GC content) and codon translation require `genetic_codes.json` to be served from the same directory — use a local server, or the file will still validate structurally with these checks disabled.
 
 ---
 
 ## Features
 
 - **Zero dependencies** — single `.html` file, runs entirely in the browser
-- **No data upload** — all parsing and validation happens locally; nothing is sent to any server
-- **Multi-table support** — paste or load `.tbl` files containing multiple sequence tables
-- **Optional FASTA pairing** — paste FASTA alongside the TBL to unlock sequence-level checks
+- **No data upload to any server** — all parsing and validation happens locally in your browser; the tool requires you to *upload* your `.tbl` (and, for full feature coverage, `.fasta` and optionally `.gb`) files, but nothing ever leaves your machine
+- **Multi-table support** — upload `.tbl` files containing multiple sequence tables
+- **Optional FASTA pairing** — upload FASTA alongside the TBL to unlock sequence-level checks
 - **Reference genome comparison** — load a GenBank `.gb` reference to compare annotation coordinates, CDS lengths, and gene content
 - **Same-species / cross-species comparison mode** — switch between strict and permissive thresholds when comparing against a reference from a different taxon
 - **Inverted Repeat (IR) awareness** — detects chloroplast IR regions and suppresses false duplicates
 - **Trans-splicing support** — correctly handles mixed-strand and IR-duplicated genes (e.g. `rps12`, `clpP`)
 - **Add / edit features interactively** — insert new gene, CDS, tRNA, rRNA, repeat_region, or misc_feature entries directly in the Features tab without editing the raw TBL
 - **Gene search and cross-tab navigation** — filter features by name/type/product; jump from any issue or reference comparison row directly to the matching feature
-- **Publication-style RSCU charts** — grouped bar chart, stacked per-AA bar chart (matching the format used in organelle-genome papers), and heatmap; configurable RSCU threshold (default 1.0; one-click preset to 1.6 per Sharp & Li 1987)
-- **Exportable results** — download issues as TSV, copy genome stats summary to clipboard
-- **Dark, professional UI** — colour-coded severity levels, tabbed interface, responsive layout
+- **Circular genome map** — OGDraw-style SVG map with strand/function colour modes, GC content ring, declared LSC/SSC/IRA/IRB region ring, and transcription-direction arrows; exportable as SVG or PNG
+- **Publication-style RSCU charts** — grouped bar chart, stacked per-AA bar chart (matching the format used in organelle-genome papers), and heatmap; codon-to-amino-acid families are derived dynamically from the genome's actual declared genetic code (not a hardcoded standard-code table), so RSCU is correct even for non-standard codes; configurable RSCU threshold (default 1.0; one-click preset to 1.6 per Sharp & Li 1987)
+- **Session persistence** — the last validated `.tbl`, FASTA, reference file, and organism selection are remembered locally (IndexedDB) so reopening the tool doesn't require re-uploading everything; fully local, clearable anytime
+- **Citation helper** — one-click plain-text and BibTeX citation, auto-dated
+- **Exportable results** — download issues as TSV, copy genome stats summary to clipboard, export validation report as standalone HTML/PDF
+- **Dark, professional UI** — colour-coded severity levels, tabbed interface, responsive layout, light/dark theme toggle
 
 ---
 
 ## Files
 
 ```
-GB_tbl_validator_v2_12.html  # Main application (all-in-one)
-genetic_codes.json           # NCBI genetic code tables (required for translation)
+GB_tbl_validator_v2_39.html  # Main application (all-in-one)
+genetic_codes.json           # NCBI genetic code tables (required for translation, RSCU, and the circular map's genetic-code-aware features)
 README.md                    # This file
 ```
 
-`genetic_codes.json` must be in the same directory as the HTML file when served locally. The tool will work without it but codon-level checks and the Codon Inspector modal will be disabled.
+`genetic_codes.json` must be in the same directory as the HTML file when served locally. The tool will work without it but codon-level checks, RSCU charts, and the Codon Inspector modal will be disabled.
 
 ---
 
 ## Usage
 
-### 1. Paste your `.tbl` content
+### 1. Upload your `.tbl` file (and, ideally, `.fasta` and `.gb`)
 
-Paste the raw text of one or more GenBank feature tables into the left panel. Each table must begin with a `>Feature <seqid>` header line.
+Drop your files onto the upload box, or click it to browse — you can select multiple files at once (`.tbl` + `.fasta` + `.gb` together). The `.tbl` file must contain a `>Feature <seqid>` header line.
 
 ```
 >Feature lcl|CP123456
@@ -83,9 +88,11 @@ Paste the raw text of one or more GenBank feature tables into the left panel. Ea
 			transl_table	11
 ```
 
-### 2. (Optional) Paste FASTA
+Only the `.tbl` file is strictly required to run validation, but uploading the matching `.fasta` alongside it is strongly recommended — without it, an entire category of checks (start/stop codon validation, internal stops, GC content, RSCU) can't run, since there's no sequence to check them against.
 
-Paste the corresponding nucleotide FASTA sequence into the right panel to enable:
+### 2. What the FASTA unlocks
+
+Uploading the corresponding nucleotide FASTA alongside your `.tbl` enables:
 - Start codon validation
 - Internal stop codon detection
 - Stop codon verification
@@ -93,11 +100,13 @@ Paste the corresponding nucleotide FASTA sequence into the right panel to enable
 - GC content, GC skew, AT skew
 - Codon usage table with RSCU charts
 - Per-CDS GC% chart
+- The GC-content ring on the circular genome map
 
 ### 3. Select organism / genetic code
 
 Choose the appropriate organism type from the dropdown. This controls:
-- Which NCBI genetic code table is used for codon validation
+- Which NCBI genetic code table is used for codon validation and translation
+- Which codon-to-amino-acid families RSCU is computed against
 - Which expected gene set is checked for completeness
 
 ### 4. (Optional) Load a reference GenBank file
@@ -106,7 +115,7 @@ Load a `.gb` / `.gbk` reference file to enable the **Ref Compare** tab. Choose *
 
 ### 5. Click **Validate**
 
-Results appear in four tabs: **Issues**, **Features**, **Stats**, and **Ref Compare** (if a reference is loaded).
+Results appear across the **Issues**, **Features**, **Auto-Fix**, **Ref Compare** (if a reference is loaded), **Stats**, **Map**, and **JSON Export** tabs.
 
 ---
 
@@ -192,9 +201,24 @@ The **Stats** tab displays a full annotation summary, computed from the TBL and 
   - **Grouped Bars** — one bar per codon, grouped by amino acid
   - **Per-AA (stacked)** — one stacked bar per amino acid group; each coloured segment = one codon's RSCU value; total RSCU sum labeled on top; codon-box legend below — matches the layout used in published organelle-genome RSCU figures. Colours follow the 3rd-codon-position convention (U = blue, C = orange, A = green, G = purple).
   - **Heatmap** — colour grid of RSCU values by amino acid and codon
+  - **Genetic-code-aware families** — which codons are treated as synonymous with which is derived from the genome's own declared genetic code (via `genetic_codes.json`), not a fixed standard-code assumption. This matters for genomes using a non-standard code (e.g. an animal mitochondrial code), where degeneracy genuinely differs (some amino acids gain or lose codons relative to the standard table).
   - **Configurable RSCU threshold** — input field with one-click presets for 1.0 (no bias) and 1.6 (Sharp & Li 1987 high-preference cutoff used in most plastid publications). The threshold line updates live across all chart views; codons above the threshold are highlighted.
 
 Results can be exported as a TSV file or copied as a formatted plain-text summary.
+
+---
+
+## Circular Genome Map
+
+The **Map** tab renders an OGDraw-style circular genome map as SVG, exportable as standalone SVG or PNG.
+
+- **Ring layout** (center → edge): structural region ring (LSC/SSC/IRA/IRB, plastid-only) → generic gene ring → rRNA ring → tRNA ring → CDS− ring → CDS+ ring → GC content ring
+- **Colour modes** — toggle between **Strand/Type** (by feature type and strand) and **Function** (OGDraw-style functional categories: photosystem I/II, cytochrome b6f, ATP synthase, NADH dehydrogenase, ribosomal proteins, etc.), with separate category schemes for plastid vs. mitochondrial genomes
+- **Transcription-direction arrows** — a curved arrow sits directly against the CDS+ ring (outside it) showing the + strand reads clockwise, and another sits directly against the CDS− ring (adjacent, on its inner side) showing the − strand reads counterclockwise; explained in the legend, colour-coded to match
+- **Structural region ring** — shows declared LSC/SSC/IRA/IRB regions when the `.tbl` contains explicit `repeat_region` features with `rpt_type=inverted` and an "inverted repeat" note; plastid genomes only. Renders independently of the GC ring (the two used to be mutually exclusive; they now share the map without conflict)
+- **GC content ring** — outward deviation = higher local GC%
+- **Issue markers** — critical/warning triangles placed at the genomic position of the underlying issue
+- **Legend** — full colour key plus a plain-language explanation of the direction arrows, included in both the on-screen view and exported files
 
 ---
 
@@ -245,6 +269,19 @@ Requires `genetic_codes.json` and a loaded FASTA sequence.
 
 ---
 
+## Session Persistence
+
+The tool remembers your last validated session — the `.tbl` text, FASTA sequence, any loaded reference `.gb` file, and the organism/genetic-code selection — using the browser's IndexedDB, so reopening the page doesn't require re-uploading everything.
+
+- Saved automatically after every successful validation
+- On reopening, a banner offers **Restore & validate** or **Dismiss**
+- A persistent status line under the upload area shows whenever a session is stored, with a one-click **clear it** link
+- Everything is stored locally in the browser only — nothing is ever uploaded or sent anywhere
+- Uses IndexedDB rather than `localStorage`, since a full genome FASTA (hundreds of KB, more for larger mitogenomes) is a poor fit for `localStorage`'s smaller, synchronous storage model
+- Some browsers restrict IndexedDB in private/incognito windows — session persistence will silently no-op in that case (validation itself is unaffected)
+
+---
+
 ## Supported Organisms
 
 | Dropdown value | NCBI Genetic Code | Notes |
@@ -262,7 +299,7 @@ Requires `genetic_codes.json` and a loaded FASTA sequence.
 | Alternative Yeast Nuclear | 12 | |
 | Standard | 1 | Default fallback |
 
-The selected organism also determines the expected gene set used by `POSSIBLY_MISSING_GENES`. The plant plastid set covers 74 genes including the full photosystem, ribosomal protein, ATP synthase, NADH dehydrogenase, and RNA polymerase complement. Gene name aliases (e.g. `clpP1` → `clpP`) are resolved automatically.
+The selected organism also determines the expected gene set used by `POSSIBLY_MISSING_GENES` and the codon-to-amino-acid families used for RSCU. The plant plastid set covers 75 genes including the full photosystem, ribosomal protein, ATP synthase, NADH dehydrogenase, and RNA polymerase complement. Gene name aliases (e.g. a genome using `clpP1` instead of `clpP`) are resolved automatically; `clpP1` is not separately required since it's an alternate name for the same gene, not a distinct one.
 
 ---
 
@@ -296,6 +333,35 @@ Deductions are severity-weighted: each `CRITICAL` issue −10 pts, each `WARNING
 ---
 
 ## Changelog
+
+### v2.39
+
+- **Removed the "paste directly" text input** — it only ever accepted `.tbl` text with no way to pair a matching FASTA or reference file, so any FASTA-dependent check (start/stop codons, internal stops, GC content, RSCU) silently couldn't run for anything typed or pasted in. File upload (`.tbl` + `.fasta` + optional `.gb`, dropped together or selected at once) is now the only supported input path, so there's no longer a route into the tool that produces an incomplete, checks-disabled validation run without it being obvious why
+- Removed the "Load example" button for the same reason — it populated the same text-only, FASTA-less input path
+- Updated the empty-input warning and upload-box copy to reflect this
+
+### v2.29 – v2.38
+
+Full development notes for this range live in `SESSION_SUMMARY_v2.16_to_v2.28.md` and `SESSION_SUMMARY_v2.29_to_v2.37.md` in this repo. Highlights:
+
+**Bug fixes:**
+- **RSCU codon families were hardcoded to the standard/code-11 table** — silently wrong for genomes using a non-standard genetic code (e.g. vertebrate mitochondrial, where AGA/AGG are stop codons and ATA is Met, not Arg/Ile). RSCU now derives codon-to-amino-acid families dynamically from the genome's own declared genetic code, via `genetic_codes.json`
+- **`POSSIBLY_MISSING_GENES` false positives** — the plant-plastid expected-gene list stored names in mixed case (`rbcL`, `psbA`, `matK`...), but the comparison lowercases everything first, so any entry with an internal capital letter could never match regardless of whether the gene was present. Fixed by lowercasing the whole expected-gene table
+- **`clpP1` required as a separate gene from `clpP`** — it's just an alternate name for the same gene; removed as a separately-required entry (a genome using either spelling now passes correctly)
+- **RSCU threshold line appeared stuck at 1.0** — a permanent "RSCU=1.0" reference line was always drawn at full visual weight, while the adjustable threshold line only appeared if it differed from 1.0 by more than a small margin. The adjustable line now always renders and is clearly labeled; the 1.0 baseline was demoted to a plain gridline
+- **3rd-codon-position legend overlapped the codon-legend row** in the per-AA RSCU chart for any amino acid with 4 synonymous codons (a common case). Fixed by anchoring the legend forward from the last row's actual position instead of back-computing from total chart height
+- **Ring-axis labels on the genome map rendered as garbled overlapping text** (`CDS+`/`CDS−`/`tRNA`/`rRNA` all at the same height, only ~15-20px apart while each label is ~25px wide). Fixed by staggering them vertically
+- **A legend entry got silently truncated to unreadable ellipsis** — a full-sentence legend entry was pushed into the swatch-grid legend, which truncates long text by design. Moved the explanation into its own caption line instead, in both the on-screen and exported legend
+- **Structural region ring (LSC/SSC/IRA/IRB) and GC ring couldn't render together** — the region ring used to sit inside the GC ring's own radius band, so it was hard-coded mutually exclusive with it. Moved the region ring to sit under the rRNA ring instead; both now render simultaneously
+
+**Features added:**
+- Circular genome map — OGDraw-style SVG map with strand/function colour modes, GC ring, declared-region ring, transcription-direction arrows (positioned directly against the CDS+/CDS− rings they represent, not floating arbitrarily), SVG/PNG export
+- Citation button + modal (plain text and BibTeX, auto-dated), next to the theme toggle
+- Session persistence via IndexedDB (see [Session Persistence](#session-persistence))
+
+### v2.16 – v2.28
+
+See `SESSION_SUMMARY_v2.16_to_v2.28.md` for full detail. Highlights: 3′-partial CDS scoring fix, Gemini-backed AI explain feature with friendly error handling, toast notifications replacing native alerts, standalone HTML/PDF validation report export, keyboard-accessible tab bar, functional-category gene colouring on the genome map (verified against real OGDraw reference images), declared LSC/SSC/IRA/IRB structural region detection, multi-column legend layout.
 
 ### v2.12
 
@@ -352,6 +418,7 @@ Deductions are severity-weighted: each `CRITICAL` issue −10 pts, each `WARNING
 - Abbreviated stop codon detection (`T` + poly-A) is confirmed only when FASTA is loaded; without it, a length-mod-1 CDS is reported as `INFO` rather than confirmed
 - The tool does not validate qualifier values against the full INSDC feature table specification (e.g. controlled vocabulary for `product` names)
 - Codon-level checks (translation validity, RSCU charts, Codon Inspector) require `genetic_codes.json` to be served from the same directory; opening the file directly via `file://` in some browsers will disable these features
+- Session persistence (IndexedDB) may be unavailable or restricted in some private/incognito browser windows; validation itself is unaffected, only the "remember last session" convenience
 
 ---
 
