@@ -361,7 +361,7 @@ Full development notes for this range live in `SESSION_SUMMARY_v2.16_to_v2.28.md
 
 ### v2.16 – v2.28
 
-See `SESSION_SUMMARY_v2.16_to_v2.28.md` for full detail. Highlights: 3′-partial CDS scoring fix, Gemini-backed AI explain feature with friendly error handling, toast notifications replacing native alerts, standalone HTML/PDF validation report export, keyboard-accessible tab bar, functional-category gene colouring on the genome map (verified against real OGDraw reference images), declared LSC/SSC/IRA/IRB structural region detection, multi-column legend layout.
+See `SESSION_SUMMARY_v2.16_to_v2.28.md` for full detail. Highlights: 3′-partial CDS scoring fix, AI explain feature with friendly error handling, toast notifications replacing native alerts, standalone HTML/PDF validation report export, keyboard-accessible tab bar, functional-category gene colouring on the genome map (verified against real OGDraw reference images), declared LSC/SSC/IRA/IRB structural region detection, multi-column legend layout.
 
 ### v2.12
 
