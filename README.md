@@ -4,6 +4,7 @@
 
 A fully client-side, single-file HTML tool for validating NCBI GenBank feature table (`.tbl`) files before submission. Catches the structural and biological errors that cause NCBI rejections, with no server, no install, and no data leaving your browser.
 
+> **Note:** To benefit from Ai assistant and explanation use the link above 
 ---
 
 ## Contents
@@ -35,7 +36,7 @@ python3 -m http.server 8080
 # then visit http://localhost:8080/GB_tbl_validator_v2_39.html
 ```
 
-> **Note:** Uploading files (not pasting) is the supported input method — see [Usage](#usage) below. FASTA-based checks (start/stop codon validation, internal stop detection, codon usage/RSCU, GC content) and codon translation require `genetic_codes.json` to be served from the same directory — use a local server, or the file will still validate structurally with these checks disabled.
+> **Note:** Uploading files is the supported input method — see [Usage](#usage) below. FASTA-based checks (start/stop codon validation, internal stop detection, codon usage/RSCU, GC content) and codon translation require `genetic_codes.json` to be served from the same directory — use a local server, or the file will still validate structurally with these checks disabled.
 
 ---
 
